@@ -1,3 +1,4 @@
+import 'package:care_management/layout/join_layout.dart';
 import 'package:care_management/layout/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/component/account_custom.dart';
@@ -7,7 +8,7 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
+    return JoinLayout(
       appBartitle: '',
       body: SafeArea(
           child: Padding(
