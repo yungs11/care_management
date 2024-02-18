@@ -109,33 +109,37 @@ class UserMainScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CardTitle(title: '12월 29일 (금)'),
-        Card(
-
-          margin: EdgeInsets.symmetric(horizontal: 1.0),
-          //border radius 주기위해!
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(4.0),
-                  bottomRight: Radius.circular(4.0))),
-          //color: lightColor,
-          child: Column(
-            children: [
-              CardList(
-                title: '아침',
-                takingTime: '09:05',
-              ),
-              CardList(
-                title: '점심',
-                takingTime: '12:05',
-              ),
-              CardList(
-                title: '저녁',
-                takingTime: '19:05',
-              ),
-
-
-            ],
-          )
+        Expanded(
+          child: SingleChildScrollView(
+            child: Card(
+            
+              margin: EdgeInsets.symmetric(horizontal: 1.0),
+              //border radius 주기위해!
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(4.0),
+                      bottomRight: Radius.circular(4.0))),
+              //color: lightColor,
+              child: Column(
+                children: [
+                  CardList(
+                    title: '아침 식전',
+                    takingTime: '09:05',
+                  ),
+                  CardList(
+                    title: '점심 식후',
+                    takingTime: '12:05',
+                  ),
+                  CardList(
+                    title: '저녁 식후',
+                    takingTime: '19:05',
+                  ),
+            
+            
+                ],
+              )
+            ),
+          ),
         )
       ],
     );
