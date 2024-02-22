@@ -91,12 +91,19 @@ class CalendarScreen extends StatelessWidget {
                       ),
                     );
                   }, markerBuilder: (context, date, events) {
-                    if (_medicineDates[date] != null) {
-                      return Positioned(
-                        right: 1,
-                        top: 1,
-                        child: _buildMedicineMarker(date),
-                      );
+                    // 모든 날짜를 동일한 시간으로 설정하여 비교
+                    DateTime normalizedDate =
+                        DateTime(date.year, date.month, date.day);
+
+                    // _medicineDates 맵을 순회하면서 normalizedDate와 비교
+                    for (var medicineDate in _medicineDates.keys) {
+                      if (isSameDay(medicineDate, normalizedDate)) {
+                        return Positioned(
+                          right: 1,
+                          top: 1,
+                          child: _buildMedicineMarker(date),
+                        );
+                      }
                     }
                   }),
                 ),
@@ -109,8 +116,14 @@ class CalendarScreen extends StatelessWidget {
   Widget _buildMedicineMarker(DateTime date) {
     return Container(
       decoration: BoxDecoration(shape: BoxShape.circle, color: PRIMARY_COLOR),
-      width: 3.0,
-      height: 3.0,
+      width: 8.0,
+      height: 8.0,
     );
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 }
