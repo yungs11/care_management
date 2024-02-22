@@ -8,7 +8,7 @@ class CardTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: PRIMARY_COLOR,
           borderRadius: BorderRadius.only(
               topRight: Radius.circular(4.0), topLeft: Radius.circular(4.0)),
@@ -22,10 +22,10 @@ class CardTitle extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: const TextStyle(fontWeight: FontWeight.w700),
                 //textAlign: TextAlign.c,
               ),
-              Text(
+              const Text(
                 '오늘',
                 style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey),
                 //textAlign: TextAlign.left,

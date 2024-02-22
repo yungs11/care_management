@@ -1,5 +1,4 @@
 import 'package:care_management/layout/join_layout.dart';
-import 'package:care_management/layout/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/component/account_custom.dart';
 
@@ -17,18 +16,18 @@ class LoginScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CustomTitle(titleText: '비밀번호를 입력해주세요 :)'),
-            SizedBox(
+            const CustomTitle(titleText: '비밀번호를 입력해주세요 :)'),
+            const SizedBox(
               height: 5.0,
             ),
-            SubTitle(
+            const SubTitle(
               subTitleText: '환영합니다.',
             ),
-            SizedBox(
+            const SizedBox(
               height: 53.0,
             ),
-            CustomTextField(),
-            SizedBox(
+            const CustomTextField(),
+            const SizedBox(
               height: 60.0,
             ),
             DoneButton(
@@ -37,7 +36,7 @@ class LoginScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {},
-              child: Text(
+              child: const Text(
                 '비밀번호를 잊으셨나요?',
                 style: TextStyle(decoration: TextDecoration.underline),
               ),

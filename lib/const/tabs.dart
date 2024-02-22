@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class TabInfo{
   final String iconImaPath; //tab에 보여줄 아이콘 이미지 패스

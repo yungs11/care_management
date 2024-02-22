@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class MainLayout extends StatelessWidget {
   final String appBartitle;
   final Widget body;
-  MainLayout({super.key, required this.appBartitle, required this.body}  );
+  const MainLayout({super.key, required this.appBartitle, required this.body}  );
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +16,8 @@ class MainLayout extends StatelessWidget {
       body: body,
       bottomNavigationBar:
         BottomNavigationBar(
-          selectedItemColor: Color(0xFF001A72),
-          unselectedItemColor: Color(0xFF001A72),
+          selectedItemColor: const Color(0xFF001A72),
+          unselectedItemColor: const Color(0xFF001A72),
           showSelectedLabels: true,
           showUnselectedLabels: true,
           //currentIndex: controller.index,

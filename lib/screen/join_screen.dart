@@ -1,6 +1,5 @@
 import 'package:care_management/component/account_custom.dart';
 import 'package:care_management/layout/join_layout.dart';
-import 'package:care_management/layout/main_layout.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatelessWidget {
@@ -15,17 +14,17 @@ class SignUpScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CustomTitle(titleText: '비밀번호를 입력해주세요 :)'),
-              SizedBox(
+              const CustomTitle(titleText: '비밀번호를 입력해주세요 :)'),
+              const SizedBox(
                 height: 5.0,
               ),
-              SubTitle(
+              const SubTitle(
                 subTitleText: '새로운 방문을 환영합니다.',
               ),
-              SizedBox(
+              const SizedBox(
                 height: 53.0,
               ),
-              Column(
+              const Column(
                 children: [
                   CustomTextField(),
                   SizedBox(
@@ -34,7 +33,7 @@ class SignUpScreen extends StatelessWidget {
                   CustomTextField(),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 60.0,
               ),
               DoneButton(

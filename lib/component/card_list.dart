@@ -77,9 +77,9 @@ class _CardListState extends State<CardList> {
       title: renderTakingTiming(widget.title, widget.takingTime),
       initiallyExpanded: false,
       children: <Widget>[
-        Divider(
+        const Divider(
           height: 3,
-          color: Color(0xFFddddddd),
+          color: Color(0xffddddddd),
         ),
         ...pillList.map((pill) => renderPill(pill))
       ],
@@ -119,7 +119,7 @@ class _CardListState extends State<CardList> {
         Expanded(
           flex: 2,
           child: Text(widget.title,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15.0)),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15.0)),
         ),
         Expanded(
           flex: 1,
@@ -127,13 +127,13 @@ class _CardListState extends State<CardList> {
             children: [
               Text(widget.takingTime,
                   style:
-                      TextStyle(fontWeight: FontWeight.w400, fontSize: 12.0)),
-              SizedBox(
+                      const TextStyle(fontWeight: FontWeight.w400, fontSize: 12.0)),
+              const SizedBox(
                 width: 20.0,
               ),
               Text(
                 FormatUtil.parseTimeToAMPM(widget.takingTime),
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
                     fontSize: 12.0),
@@ -157,11 +157,12 @@ class _CardListState extends State<CardList> {
                 setState(() {
                   final now = DateTime.now().toLocal();
                   pill.takingYN = !pill.takingYN;
-                  if (pill.takingYN)
+                  if (pill.takingYN) {
                     pill.takingTime =
                         DateFormat('HH:mm').format(now).toString();
-                  else
+                  } else {
                     pill.takingTime = '';
+                  }
                 });
               },
               icon: Icon(
@@ -173,23 +174,23 @@ class _CardListState extends State<CardList> {
         Expanded(
           flex: 2,
           child: Text(pill.name,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0)),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0)),
         ),
         Expanded(
           child: Row(
             children: [
               Text(pill.takingTime.toString(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12.0,
                     color: Colors.grey,
                   )),
-              SizedBox(
+              const SizedBox(
                 width: 10.0,
               ),
               Text(
                   FormatUtil.parseTimeToAMPM(pill.takingTime.toString()),
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
                     fontSize: 12.0),
@@ -209,14 +210,15 @@ class _CardListState extends State<CardList> {
                     border: Border.all(width: 1.0, color: Colors.grey[300]!)),
                 child: IconButton(
                   onPressed: () {
-                    if (pill.takingCount - 1 < 0)
+                    if (pill.takingCount - 1 < 0) {
                       pill.takingCount = 0;
-                    else
+                    } else {
                       pill.takingCount -= 1;
+                    }
                     _updateTakingCount(pill, pill.takingCount);
                   },
-                  padding: EdgeInsets.only(bottom: 5.0), // 패딩 제거
-                  icon: Icon(
+                  padding: const EdgeInsets.only(bottom: 5.0), // 패딩 제거
+                  icon: const Icon(
                     Icons.minimize_outlined,
                     size: 10.0,
                   ),
@@ -227,17 +229,17 @@ class _CardListState extends State<CardList> {
                 height: 20,
                 child: TextFormField(
                   controller: pill.controller,
-                  style: TextStyle(fontSize: 12.0, color: Colors.black),
+                  style: const TextStyle(fontSize: 12.0, color: Colors.black),
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.zero,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.zero),
+                      borderRadius: const BorderRadius.all(Radius.zero),
                       borderSide: BorderSide(color: Colors.grey[300]!),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.zero),
+                      borderRadius: const BorderRadius.all(Radius.zero),
                       borderSide: BorderSide(color: Colors.grey[300]!),
                     ),
                     hintText: 'Enter a number',
@@ -256,7 +258,7 @@ class _CardListState extends State<CardList> {
                     _updateTakingCount(pill, pill.takingCount);
                   },
                   padding: EdgeInsets.zero, // 패딩 제거
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.add,
                     size: 10.0,
                   ),

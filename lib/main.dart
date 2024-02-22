@@ -1,10 +1,15 @@
 import 'package:care_management/screen/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized(); //flutter framework가 준비가 되었는지 기다림. (runApp하면 자동으로 실행함.)
+
+  await initializeDateFormatting();
+
   runApp(MaterialApp(
       theme: ThemeData(fontFamily: 'Pretendard'),
-      home: HomeScreen(),
+      home: const HomeScreen(),
 
   ));
 }

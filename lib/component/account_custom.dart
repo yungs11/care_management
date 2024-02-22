@@ -10,7 +10,7 @@ class CustomTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       titleText,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 24.0,
         fontFamily: 'Pretendard',
         fontWeight: FontWeight.w900,
@@ -28,7 +28,7 @@ class SubTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       subTitleText,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 15,
       ),
     );
@@ -40,7 +40,7 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return const TextField(
       decoration: InputDecoration(
         enabledBorder: UnderlineInputBorder(
           borderSide: BorderSide(color: Color(0x33000000), width: 1.5),
@@ -65,14 +65,14 @@ class DoneButton extends StatelessWidget {
     return ElevatedButton(
         onPressed: onButtonPressed,
         style: ElevatedButton.styleFrom(
-          primary: PRIMARY_COLOR,
+          backgroundColor: PRIMARY_COLOR,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-          padding: EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(32.0),
         ),
         child: Text(
           buttonText,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
           ),
         ));

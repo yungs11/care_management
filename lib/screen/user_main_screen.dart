@@ -1,4 +1,3 @@
-import 'package:care_management/component/account_custom.dart';
 import 'package:care_management/component/card_list.dart';
 import 'package:care_management/component/card_title.dart';
 import 'package:care_management/const/colors.dart';
@@ -58,11 +57,10 @@ class UserMainScreen extends StatelessWidget {
         ),
       )),
     );
-    ;
   }
 
   Widget renderDateHeader() {
-    return Row(children: [
+    return const Row(children: [
       Text(
         '12월, 2023',
         style: TextStyle(
@@ -70,7 +68,7 @@ class UserMainScreen extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
-      const SizedBox(
+      SizedBox(
         width: 10.0,
       ),
       ImageIcon(AssetImage('asset/icon/calendar.png')),
@@ -81,10 +79,10 @@ class UserMainScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-            color: isSelected ? PRIMARY_COLOR : Color(0xFFE0E0E0), width: 3.0),
+            color: isSelected ? PRIMARY_COLOR : const Color(0xFFE0E0E0), width: 3.0),
         borderRadius: BorderRadius.circular(15.0),
       ),
-      padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
       width: 55.0,
       height: 82.0,
       child: Column(
@@ -92,11 +90,11 @@ class UserMainScreen extends StatelessWidget {
         children: [
           Text(
             mapData['date'],
-            style: TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
           Text(
             mapData['day'],
-            style: TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontWeight: FontWeight.w500),
           )
         ],
       ),
@@ -108,14 +106,14 @@ class UserMainScreen extends StatelessWidget {
       //mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CardTitle(title: '12월 29일 (금)'),
+        const CardTitle(title: '12월 29일 (금)'),
         Expanded(
           child: SingleChildScrollView(
             child: Card(
             
-              margin: EdgeInsets.symmetric(horizontal: 1.0),
+              margin: const EdgeInsets.symmetric(horizontal: 1.0),
               //border radius 주기위해!
-              shape: RoundedRectangleBorder(
+              shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(4.0),
                       bottomRight: Radius.circular(4.0))),
