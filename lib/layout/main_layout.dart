@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 class MainLayout extends StatelessWidget {
   final String appBartitle;
   final Widget body;
-  const MainLayout({super.key, required this.appBartitle, required this.body}  );
+  final Widget? floatingActionButton;
+  final bool addPadding;
+  const MainLayout({super.key, required this.appBartitle, required this.body, this.floatingActionButton, this.addPadding = false}  );
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +14,15 @@ class MainLayout extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(appBartitle),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: (){},
+          )
+        ],
       ),
-      body: body,
+      floatingActionButton: floatingActionButton,
+      body: addPadding ? addPadding32(body) : body,
       bottomNavigationBar:
         BottomNavigationBar(
           selectedItemColor: const Color(0xFF001A72),
@@ -31,5 +40,13 @@ class MainLayout extends StatelessWidget {
         )
 
     );
+  }
+
+  Widget addPadding32(body){
+    return SafeArea(
+        child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: body,
+    ));
   }
 }

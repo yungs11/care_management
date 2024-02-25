@@ -1,28 +1,37 @@
 import 'package:care_management/const/colors.dart';
 import 'package:care_management/layout/main_layout.dart';
+import 'package:care_management/util/formatUtil.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  DateTime? selectedDay;
+  DateTime focusedDay =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+  @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final focusedDay = DateTime(now.year, now.month, now.day);
+    final headerStyle = HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+        titleTextStyle: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 16.0,
+        ));
+
     final defaultBoxDeco = BoxDecoration(
         color: Colors.grey[200], borderRadius: BorderRadius.circular(6.0));
     final defaultTextStyle = TextStyle(
       color: Color(0xFFC8C8C8),
       fontWeight: FontWeight.w500,
     );
-
-    Map<DateTime, List> _medicineDates = {
-      DateTime(2024, 2, 5): ['Medicine 1'],
-      DateTime(2024, 2, 6): ['Medicine 2'],
-      DateTime(2024, 2, 7): ['Medicine 2'],
-      DateTime(2024, 2, 8): ['Medicine 2'],
-    };
 
     // 전체 화면 높이
     double screenHeight = MediaQuery.of(context).size.height;
@@ -36,6 +45,7 @@ class CalendarScreen extends StatelessWidget {
 
     return MainLayout(
         appBartitle: '날짜선택',
+        floatingActionButton: _renderFloatingActionButton(),
         body: Column(
           //mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -45,72 +55,95 @@ class CalendarScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
-                color: BACKGROUND_COLOR,
+                //   color: BACKGROUND_COLOR,
                 child: TableCalendar(
                   locale: 'ko_KR',
                   focusedDay: focusedDay,
                   firstDay: DateTime(1800),
                   lastDay: DateTime(3000),
-                  headerStyle: HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                      titleTextStyle: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16.0,
-                      )),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    // print(selectedDay);
+                    // print(focusedDay);
+
+                    setState(() {
+                      this.selectedDay = selectedDay;
+                      this.focusedDay = focusedDay;
+                    });
+                  },
+                  // 선택된 날짜를 표시하기 위한 조건
+                  selectedDayPredicate: (day) {
+                    return isSameDay(selectedDay, day);
+                  },
+                  headerStyle: headerStyle,
                   calendarStyle: CalendarStyle(
-                      isTodayHighlighted: false, //오늘날짜 highlight 표시 끔
-                      //날짜들이  container안에 들어가있고, 그 container의 deco를 지정 ( focusedDay의 평일들만 지정 가능)
-                      //      defaultDecoration: defaultBoxDeco,
-                      //     weekendDecoration: defaultBoxDeco,
-                      selectedDecoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6.0),
-                        border: Border.all(
-                          color: PRIMARY_COLOR,
-                          width: 1.0, //px
-                        ),
-                      ),
-                      defaultTextStyle: defaultTextStyle,
-                      weekendTextStyle: defaultTextStyle,
-                      selectedTextStyle: defaultTextStyle.copyWith(
-                        color: PRIMARY_COLOR,
-                      ),
-                      //focused된 달력의 외부날짜(1월 ex.2,12월)
-                      outsideDecoration: BoxDecoration(
-                        shape: BoxShape
-                            .rectangle, //에러 나는 이유가 기본값이 circle이었기 때문에 circle에 셀렉티드효과(radius)주려했기 때문에.
-                      )),
+                    isTodayHighlighted: false, //오늘날짜 highlight 표시 끔
+                  ),
                   calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, foucusedDay) {
-                    String dayFormatted = day.day.toString().padLeft(2, '0');
-                    return Center(
-                      child: Text(
-                        dayFormatted,
-                        style: defaultTextStyle,
-                      ),
-                    );
+                    return _renderDefaultDate(day, defaultTextStyle);
+                  }, selectedBuilder: (context, date, events) {
+                    return _renderSelectedDate(date);
                   }, markerBuilder: (context, date, events) {
-                    // 모든 날짜를 동일한 시간으로 설정하여 비교
-                    DateTime normalizedDate =
-                        DateTime(date.year, date.month, date.day);
-
-                    // _medicineDates 맵을 순회하면서 normalizedDate와 비교
-                    for (var medicineDate in _medicineDates.keys) {
-                      if (isSameDay(medicineDate, normalizedDate)) {
-                        return Positioned(
-                          right: 1,
-                          top: 1,
-                          child: _buildMedicineMarker(date),
-                        );
-                      }
-                    }
+                   return _renderMarkerBuilder(date);
                   }),
                 ),
               ),
             ),
           ],
         ));
+  }
+
+  Widget _renderDefaultDate(DateTime day, defaultTextStyle) {
+    String dayFormatted = day.day.toString().padLeft(2, '0');
+    return Center(
+      child: Text(
+        dayFormatted,
+        style: defaultTextStyle,
+      ),
+    );
+  }
+
+  Widget _renderSelectedDate(date) {
+    String dayFormatted = date.day.toString().padLeft(2, '0');
+
+    return Container(
+        margin: const EdgeInsets.all(4.0),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border.all(color: PRIMARY_COLOR),
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          dayFormatted,
+          //style: TextStyle(),
+        ));
+  }
+
+  Widget _renderMarkerBuilder(DateTime date) {
+    Map<DateTime, List> _medicineDates = {
+      DateTime(2024, 2, 5): ['Medicine 1'],
+      DateTime(2024, 2, 6): ['Medicine 2'],
+      DateTime(2024, 2, 7): ['Medicine 2'],
+      DateTime(2024, 2, 8): ['Medicine 2'],
+      DateTime(2024, 3, 8): ['Medicine 2'],
+    };
+
+
+    // 모든 날짜를 동일한 시간으로 설정하여 비교
+    DateTime normalizedDate =
+    DateTime(date.year, date.month, date.day);
+
+    // _medicineDates 맵을 순회하면서 normalizedDate와 비교
+    if (_medicineDates.containsKey(normalizedDate)) {
+      return Positioned(
+        right: 1,
+        top: 1,
+        child: _buildMedicineMarker(date),
+      );
+    }
+    //마커 없는 곳 크기 0인 위젯 생성
+    return SizedBox.shrink();
+  
   }
 
   Widget _buildMedicineMarker(DateTime date) {
@@ -121,9 +154,13 @@ class CalendarScreen extends StatelessWidget {
     );
   }
 
-  bool isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+  Widget _renderFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () {},
+      backgroundColor: PRIMARY_COLOR,
+      foregroundColor: Colors.white,
+      shape: CircleBorder(),
+      child: Icon(Icons.add),
+    );
   }
 }

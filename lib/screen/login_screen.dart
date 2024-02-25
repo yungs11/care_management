@@ -1,6 +1,6 @@
 import 'package:care_management/layout/join_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:care_management/component/account_custom.dart';
+import 'package:care_management/component/custom_components.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -26,7 +26,7 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(
               height: 53.0,
             ),
-            const CustomTextField(),
+            const CustomTextField(labelText: '',),
             const SizedBox(
               height: 60.0,
             ),

@@ -1,5 +1,5 @@
 import 'package:care_management/const/colors.dart';
-import 'package:care_management/model/pill_model.dart';
+import 'package:care_management/model/medicine_model.dart';
 import 'package:care_management/util/formatUtil.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,29 +8,29 @@ class CardList extends StatefulWidget {
   final String title;
   String takingTime;
   bool takeYN = false;
-  List<Pill> pillList = [
-    Pill(
+  List<Medicine> pillList = [
+    Medicine(
       name: '코푸시럽',
       takingTime: '09:05',
       takingCount: 1,
       takingYN: false,
       controller: TextEditingController(text: 1.toString()),
     ),
-    Pill(
+    Medicine(
       name: '모비드캡슐',
       takingTime: '09:05',
       takingCount: 1,
       takingYN: false,
       controller: TextEditingController(text: 1.toString()),
     ),
-    Pill(
+    Medicine(
       name: '무코레바정',
       takingTime: '09:05',
       takingCount: 1,
       takingYN: false,
       controller: TextEditingController(text: 1.toString()),
     ),
-    Pill(
+    Medicine(
       name: '트라몰서방정',
       takingTime: '09:05',
       takingCount: 0.5,
@@ -51,13 +51,13 @@ class _CardListState extends State<CardList> {
   @override
   void dispose() {
     // TODO: implement dispose
-    for (Pill pill in widget.pillList) {
+    for (Medicine pill in widget.pillList) {
       pill.controller.dispose();
     }
     super.dispose();
   }
 
-  void _updateTakingCount(Pill pill, double value) {
+  void _updateTakingCount(Medicine pill, double value) {
     setState(() {
       pill.controller.text = FormatUtil.doubleToString(value);
     });
@@ -72,7 +72,7 @@ class _CardListState extends State<CardList> {
     );
   }
 
-  Widget renderExpansionCard(List<Pill> pillList) {
+  Widget renderExpansionCard(List<Medicine> pillList) {
     return ExpansionTile(
       title: renderTakingTiming(widget.title, widget.takingTime),
       initiallyExpanded: false,
@@ -97,7 +97,7 @@ class _CardListState extends State<CardList> {
                   setState(() {
                     final now = DateTime.now().toLocal();
                     widget.takeYN = !widget.takeYN;
-                    for (Pill pill in widget.pillList) {
+                    for (Medicine pill in widget.pillList) {
                       pill.takingYN = widget.takeYN;
                     }
                     if (widget.takeYN) {
@@ -107,7 +107,7 @@ class _CardListState extends State<CardList> {
                       widget.takingTime = '';
                     }
 
-                    for (Pill pill in widget.pillList) {
+                    for (Medicine pill in widget.pillList) {
                       pill.takingTime = widget.takingTime;
                     }
                   });
@@ -145,7 +145,7 @@ class _CardListState extends State<CardList> {
     );
   }
 
-  Widget renderPill(Pill pill) {
+  Widget renderPill(Medicine pill) {
     //_textController.text= pill['takingCount'].toString() ?? '';
 
     return SizedBox(

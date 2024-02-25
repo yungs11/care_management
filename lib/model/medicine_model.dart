@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 ex.
 
 */
-class Pill {
+class Medicine {
   String name;
   String takingTime;
   double takingCount;
   bool takingYN;
   TextEditingController controller;
 
-  Pill(
+  Medicine(
       {required this.name,
       required this.takingTime,
       required this.takingCount,

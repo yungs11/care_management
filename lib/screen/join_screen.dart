@@ -1,4 +1,4 @@
-import 'package:care_management/component/account_custom.dart';
+import 'package:care_management/component/custom_components.dart';
 import 'package:care_management/layout/join_layout.dart';
 import 'package:flutter/material.dart';
 
@@ -26,11 +26,11 @@ class SignUpScreen extends StatelessWidget {
               ),
               const Column(
                 children: [
-                  CustomTextField(),
+                  CustomTextField(labelText: '',),
                   SizedBox(
                     height: 30.0,
                   ),
-                  CustomTextField(),
+                  CustomTextField(labelText: '',),
                 ],
               ),
               const SizedBox(
