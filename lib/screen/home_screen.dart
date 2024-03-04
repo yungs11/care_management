@@ -1,6 +1,7 @@
 import 'package:care_management/layout/main_layout.dart';
 import 'package:care_management/screen/calendar_screen.dart';
 import 'package:care_management/screen/login_screen.dart';
+import 'package:care_management/screen/prescription_bag_dosage_schedule_screen.dart';
 import 'package:care_management/screen/prescription_bag_input_screen.dart';
 import 'package:care_management/screen/renew_password_screen.dart';
 import 'package:care_management/screen/join_screen.dart';
@@ -22,31 +23,25 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
-
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
-  void initState(){
+  void initState() {
     super.initState();
     fetchData();
   }
 
-  fetchData() async{
-    final result = await Dio().get('https://199e-125-242-126-203.ngrok-free.app/api/v1',
-      queryParameters: {
+  fetchData() async {
+    final result = await Dio().get(
+        'https://199e-125-242-126-203.ngrok-free.app/api/v1',
+        queryParameters: {});
 
-      }
-    );
-
-    print(result  );
+    print(result);
   }
 
   @override
   Widget build(BuildContext context) {
-
     /*TextEditingController controller =
     TextEditingController();
     ;*/
@@ -57,7 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ScreenModel(builder: (_) => const SignUpScreen(), name: '가입하기'),
       ScreenModel(builder: (_) => const UserMainScreen(), name: '메인페이지'),
       ScreenModel(builder: (_) => const CalendarScreen(), name: '날짜선택페이지'),
-      ScreenModel(builder: (_) => const PrescriptionBagInputScreen(), name: '약봉투 등록 페이지'),
+      ScreenModel(
+          builder: (_) => const PrescriptionBagInputScreen(),
+          name: '약봉투 등록 페이지'),
+      ScreenModel(
+          builder: (_) => const PrescriptionBagDosageSceduleScreen(),
+          name: '복약계획 등록 페이지'),
     ];
 
     return MainLayout(
@@ -83,22 +83,24 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(
             height: 53.0,
           ),
-          CustomTextField(labelText: '',),
+          CustomTextField(
+            labelText: '',
+          ),
           const SizedBox(
             height: 60.0,
           ),
           DoneButton(
               onButtonPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
               buttonText: '확인'),
           Column(
               children: screens
                   .map((screen) => ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: screen.builder));
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: screen.builder));
                         },
                         child: Text(screen.name),
                       ))

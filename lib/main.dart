@@ -21,7 +21,10 @@ void main() async {
       const Locale('ko', 'KO'),
     ],
     locale: Locale('ko'),
-    theme: ThemeData(fontFamily: 'Pretendard', primaryColor: PRIMARY_COLOR),
+    theme: ThemeData(fontFamily: 'Pretendard', primaryColor: PRIMARY_COLOR,
+    dialogTheme: DialogTheme(
+      backgroundColor: Colors.white,
+    )),
     home: const HomeScreen(),
   ));
 }
