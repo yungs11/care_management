@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 class DosageScheduleButton extends StatelessWidget {
   final String scheduleTitle;
   final VoidCallback onPressed;
-  final bool isSelected;
+  final bool isBoxSelected;
 
   const DosageScheduleButton(
       {super.key,
       required this.scheduleTitle,
       required this.onPressed,
-      required this.isSelected});
+      required this.isBoxSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +49,11 @@ class DosageScheduleButton extends StatelessWidget {
             style: TextButton.styleFrom(
               //padding: EdgeInsets.symmetric(vertical: 20.0),,
               //    backgroundColor: Colors.green,
-              foregroundColor: isSelected ? PRIMARY_COLOR : NON_SELECTED_COLOR,
+              foregroundColor: isBoxSelected ? PRIMARY_COLOR : NON_SELECTED_COLOR,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
                 side: BorderSide(
-                    color: isSelected ? PRIMARY_COLOR : NON_SELECTED_COLOR,
+                    color: isBoxSelected ? PRIMARY_COLOR : NON_SELECTED_COLOR,
                     width: 2.0),
               ),
             ),

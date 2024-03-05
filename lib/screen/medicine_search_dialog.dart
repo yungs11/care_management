@@ -34,7 +34,7 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('필터'),
+          Text('약 검색'),
           IconButton(
             icon: Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),

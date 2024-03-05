@@ -34,12 +34,12 @@ class PrescriptionBagDosageSceduleScreen extends StatelessWidget {
             onPressed: () {
               print('000');
               _showPopup(context);
-            }, isSelected: true,
+            }, isBoxSelected: true,
           ),
           DosageScheduleButton(
             scheduleTitle: '점심 (08:00)',
             onPressed: () {},
-            isSelected: false,
+            isBoxSelected: false,
           ),
           SizedBox(height: 20.0,),
           DoneButton(onButtonPressed: () {
