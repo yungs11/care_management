@@ -1,43 +1,23 @@
-import 'package:care_management/common/component/main_card_list.dart';
-import 'package:care_management/common/component/card_title.dart';
 import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
+import 'package:care_management/common/util/formatUtil.dart';
 import 'package:flutter/material.dart';
 
-class UserMainScreen extends StatelessWidget {
-  const UserMainScreen({super.key});
+class PrescriptionHistoryScreen extends StatelessWidget {
+  final DateTime selectedDate;
+
+  const PrescriptionHistoryScreen({super.key, required this.selectedDate});
+
+
+
 
   @override
   Widget build(BuildContext context) {
-    List tempDateBoxData = [
-      {
-        'date': '27',
-        'day': '수',
-      },
-      {
-        'date': '28',
-        'day': '목',
-      },
-      {
-        'date': '29',
-        'day': '금',
-      },
-      {
-        'date': '30',
-        'day': '토',
-      },
-      {
-        'date': '31',
-        'day': '일',
-      },
-    ];
-
     List<MedicationScheduleBoxModel> pillListPerSchedules = [
       MedicationScheduleBoxModel(
         title: '아침 약',
-        memo: '먹는데 어렵지 않았따!',
         takeDateTime: DateTime(2023, 12, 29, 09, 55, 0),
         medicines: <TakingMedicineItem>[
           TakingMedicineItem(
@@ -72,7 +52,6 @@ class UserMainScreen extends StatelessWidget {
       ),
       MedicationScheduleBoxModel(
           title: '점심 약',
-          memo: '재밌다!',
           takeDateTime: DateTime(2023, 12, 29, 12, 55, 0),
           medicines: <TakingMedicineItem>[
             TakingMedicineItem(
@@ -106,7 +85,6 @@ class UserMainScreen extends StatelessWidget {
           ]),
       MedicationScheduleBoxModel(
         title: '저녁 약',
-        memo: '건강해졌으면 좋겠다!',
         takeDateTime: DateTime(2023, 12, 29, 19, 55, 0),
         medicines: <TakingMedicineItem>[
           TakingMedicineItem(
@@ -142,103 +120,107 @@ class UserMainScreen extends StatelessWidget {
     ];
 
     return MainLayout(
-      appBartitle: '',
-      body: SafeArea(
+        appBartitle: '처방 내역',
+        body: SingleChildScrollView(
           child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            renderDateHeader(),
-            const SizedBox(
-              height: 10.0,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //children: tempDateBoxData.map((e) => renderDateBox(e)).toList(),
-              children: List.generate(tempDateBoxData.length,
-                  (i) => renderDateBox(tempDateBoxData[i], i == 2)),
-            ),
-            const SizedBox(
-              height: 50.0,
-            ),
-            Expanded(child: renderPillCard(pillListPerSchedules)),
-          ],
-        ),
-      )),
-    );
-  }
+            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+              Align(alignment:Alignment.centerLeft, child: SizedBox(width: 140.0, child: renderSelectedDate(selectedDate))),
 
-  Widget renderDateHeader() {
-    return const Row(children: [
-      Text(
-        '12월, 2023',
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      SizedBox(
-        width: 10.0,
-      ),
-      ImageIcon(AssetImage('asset/icon/calendar.png')),
-    ]);
-  }
-
-  Widget renderDateBox(mapData, isSelected) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-            color: isSelected ? PRIMARY_COLOR : const Color(0xFFE0E0E0),
-            width: 3.0),
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-      width: 55.0,
-      height: 82.0,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            mapData['date'],
-            style: const TextStyle(fontWeight: FontWeight.w500),
+              ...pillListPerSchedules.map((pillListPerTimeBox) => Column(
+                children: [
+                  SizedBox(height: 20.0,),
+                  renderMedicinePerTImeBox(pillListPerTimeBox),
+                ],
+              )).toList(),
+            ]),
           ),
-          Text(
-            mapData['day'],
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget renderPillCard(List<MedicationScheduleBoxModel> pillListPerSchedules) {
-    return Column(
-      //mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const CardTitle(title: '12월 29일 (금)'),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Card(
-                margin: const EdgeInsets.symmetric(horizontal: 1.0),
-                //border radius 주기위해!
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(4.0),
-                        bottomRight: Radius.circular(4.0))),
-                //color: lightColor,
-                child: Column(
-                  children: pillListPerSchedules
-                      .map((pillListPerTimeBox) => MainCardList(
-                          title: pillListPerTimeBox.title,
-                          memo: pillListPerTimeBox.memo == null? '' : pillListPerTimeBox.memo,
-                          takingTime: pillListPerTimeBox.takeDateTime!,
-                          medicineList: pillListPerTimeBox.medicines!))
-                      .toList(),
-                )),
-          ),
-        )
-      ],
-    );
+        ));
   }
 }
+
+Widget renderSelectedDate(DateTime selectedDate){
+  return  Container(
+    decoration: BoxDecoration(
+      border: Border.all(
+          color: PRIMARY_COLOR, width: 3.0),
+      borderRadius: BorderRadius.circular(15.0),
+
+    ),
+    //padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+    height: 45.0,
+    child: Center(
+      child: Text(
+       '${selectedDate.year} / ${selectedDate.month} / ${selectedDate.day}',
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+    ),
+  );;
+}
+
+
+Widget renderMedicinePerTImeBox(MedicationScheduleBoxModel pillListPerTimeBox){
+   TextStyle headerFontstyle = const TextStyle(
+      color: PRIMARY_COLOR,
+      fontWeight: FontWeight.w500,
+      fontSize: 12.0);
+
+  return
+    DataTable(
+      columnSpacing: 10.0,
+      headingRowHeight: 20.0,
+      horizontalMargin: 0,
+      columns: <DataColumn>[
+        DataColumn(label: Text(pillListPerTimeBox.title, style: TextStyle( fontSize: 15.0, fontWeight: FontWeight.w500),)),
+        DataColumn(label: Text('')),
+        DataColumn(label: Text('1회분량',style: headerFontstyle,)),
+        DataColumn(
+            label: Text('남은양',
+                style: headerFontstyle)),
+        DataColumn(
+            label: Text('처방량',
+                style: headerFontstyle)),
+      ],
+      rows: pillListPerTimeBox.medicines!.map((e) => renderPillItem(e)).toList(),
+    );
+
+
+
+}
+
+DataRow renderPillItem(TakingMedicineItem pill) {
+  //_textController.text= pill['takingCount'].toString() ?? '';
+
+  return DataRow(
+    cells: <DataCell>[
+      DataCell(Container(width: 50.0, child: renderPillTakingYNIcon(pill))),
+      DataCell(Container(width: 150.0, child: renderPillName(pill))),
+      DataCell(Container(width: 40.0, child:  Text('1개'))),
+      DataCell(Container(width: 40.0, child: Text('5일분'))),
+      DataCell(Container(width: 40.0, child: Text('10일분'))),
+    ],
+  );
+}
+
+
+Widget renderPillTakingYNIcon(pill) {
+  return pill.takingYN
+      ? Icon(
+    Icons.circle_outlined,
+    color: PRIMARY_COLOR,
+    size: 10.0,
+  )
+      : Icon(
+    Icons.close,
+    color: Colors.indigo,
+    size: 10.0,
+  );
+}
+
+Widget renderPillName(pill) {
+  return Text(pill.name,
+      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0));
+}
+

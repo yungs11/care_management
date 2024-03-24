@@ -1,13 +1,17 @@
-import 'package:care_management/layout/main_layout.dart';
-import 'package:care_management/screen/calendar_screen.dart';
-import 'package:care_management/screen/login_screen.dart';
-import 'package:care_management/screen/prescription_bag_dosage_schedule_screen.dart';
-import 'package:care_management/screen/prescription_bag_input_screen.dart';
-import 'package:care_management/screen/renew_password_screen.dart';
-import 'package:care_management/screen/join_screen.dart';
+import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/screen/DoseLog/dose_log_screen.dart';
+import 'package:care_management/screen/medication_time_manage/med_time_manage_screen.dart';
+import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
+import 'package:care_management/screen/medication_time_manage/med_time_manage_input_screen.dart';
+import 'package:care_management/screen/search/calendar_screen.dart';
+import 'package:care_management/screen/auth/login_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/prescription_bag_dosage_schedule_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
+import 'package:care_management/screen/auth/renew_password_screen.dart';
+import 'package:care_management/screen/auth/join_screen.dart';
 import 'package:care_management/screen/user_main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:care_management/component/custom_components.dart';
+import 'package:care_management/common/component/custom_components.dart';
 import 'package:dio/dio.dart';
 
 //테스트용
@@ -58,54 +62,65 @@ class _HomeScreenState extends State<HomeScreen> {
       ScreenModel(
           builder: (_) => const PrescriptionBagDosageSceduleScreen(),
           name: '복약계획 등록 페이지'),
+      ScreenModel(
+          builder: (_) => const DoseLogScreen(selectedDate: '2023년 12월 29일 (금)',),
+          name: '복용 내역 페이지'),
+      ScreenModel(
+          builder: (_) => PrescriptionHistoryScreen(selectedDate: DateTime(2023,12,29),),
+          name: '처방 내역 페이지'),
+      ScreenModel(
+          builder: (_) => MedTimeManageScreen(),
+          name: '복약 시간대 관리 페이지'),
     ];
 
     return MainLayout(
       appBartitle: '',
       addPadding: true,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CustomTitle(titleText: '이메일을 입력해주세요 :)'),
-              SizedBox(
-                height: 5.0,
-              ),
-              SubTitle(
-                subTitleText: '가입 혹은 로그인에 필요합니다.',
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 53.0,
-          ),
-          CustomTextField(
-            labelText: '',
-          ),
-          const SizedBox(
-            height: 60.0,
-          ),
-          DoneButton(
-              onButtonPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
-              },
-              buttonText: '확인'),
-          Column(
-              children: screens
-                  .map((screen) => ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(builder: screen.builder));
-                        },
-                        child: Text(screen.name),
-                      ))
-                  .toList()),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                CustomTitle(titleText: '이메일을 입력해주세요 :)'),
+                SizedBox(
+                  height: 5.0,
+                ),
+                SubTitle(
+                  subTitleText: '가입 혹은 로그인에 필요합니다.',
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 53.0,
+            ),
+            CustomTextField(
+              labelText: '',
+            ),
+            const SizedBox(
+              height: 60.0,
+            ),
+            DoneButton(
+                onButtonPressed: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()));
+                },
+                buttonText: '확인'),
+            Column(
+                children: screens
+                    .map((screen) => ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: screen.builder));
+                          },
+                          child: Text(screen.name),
+                        ))
+                    .toList()),
+          ],
+        ),
       ),
     );
   }

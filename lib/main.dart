@@ -1,7 +1,8 @@
-import 'package:care_management/const/colors.dart';
+import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -10,22 +11,24 @@ void main() async {
 
   await initializeDateFormatting();
 
-  runApp(MaterialApp(
-    //한글 다이어그램 지정
-    localizationsDelegates: [
-      GlobalMaterialLocalizations.delegate, //for 안드로이드
-      GlobalCupertinoLocalizations.delegate, //for IOS
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: [
-      const Locale('ko', 'KO'),
-    ],
-    locale: Locale('ko'),
-    theme: ThemeData(fontFamily: 'Pretendard', primaryColor: PRIMARY_COLOR,
-    dialogTheme: DialogTheme(
-      backgroundColor: Colors.white,
-    )),
-    home: const HomeScreen(),
+  runApp(ProviderScope(
+    child: MaterialApp(
+      //한글 다이어그램 지정
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate, //for 안드로이드
+        GlobalCupertinoLocalizations.delegate, //for IOS
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ko', 'KO'),
+      ],
+      locale: Locale('ko'),
+      theme: ThemeData(fontFamily: 'Pretendard', primaryColor: PRIMARY_COLOR,
+      dialogTheme: DialogTheme(
+        backgroundColor: Colors.white,
+      )),
+      home: const HomeScreen(),
+    ),
   ));
 }
 /* theme: ThemeData(
