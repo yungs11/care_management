@@ -14,6 +14,7 @@ class MainCardList extends StatefulWidget {
   bool takeYN = false;
 
 
+
   MainCardList(
       {super.key,
       required this.title,
@@ -62,7 +63,7 @@ class _MainCardListState extends State<MainCardList> {
           color: Color(0xffddddddd),
         ),
         ...medicineList.map((medicine) => renderPillItem(medicine)),
-        renderMemo(widget.memo!),
+        MemoBox(memo: widget.memo!),
       ],
     );
   }
@@ -274,33 +275,99 @@ class _MainCardListState extends State<MainCardList> {
     );
   }
 
-  Widget renderMemo(String memo) {
-    return Container(
-      margin: const EdgeInsets.only(left: 13.0),
-      child: Row(
-        children: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(45,25),
-              padding: EdgeInsets.zero,
-              backgroundColor: PRIMARY_COLOR, // 터키색 배경
-              foregroundColor: Colors.white, // 텍스트 색상
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0), // 둥근 모서리 반경
-              ),
-            ),
-            onPressed: () {
-
-            },
-            child: Text(
-              '메모',
-              style: TextStyle(
-                fontSize: 10, // 폰트 크기
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }
+
+  class MemoBox extends StatefulWidget {
+    final String memo;
+
+    MemoBox({required this.memo});
+
+    @override
+    State<MemoBox> createState() => _MemoBoxState();
+  }
+
+
+class _MemoBoxState extends State<MemoBox> {
+  bool showMemoPad = false;
+  TextEditingController _memoController = TextEditingController(); // 컨트롤러 추가
+
+
+  @override
+    Widget build(BuildContext context) {
+      return Container(
+        //width: MediaQuery.of(context).size.width /2 ,
+        margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+        child:
+            !showMemoPad ?
+            Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(45, 25),
+                    padding: EdgeInsets.zero,
+                    backgroundColor: PRIMARY_COLOR,
+                    // 터키색 배경
+                    foregroundColor: Colors.white,
+                    // 텍스트 색상
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0), // 둥근 모서리 반경
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      showMemoPad = !showMemoPad;
+                    });
+                  },
+                  child: Text(
+                    '메모',
+                    style: TextStyle(
+                      fontSize: 10, // 폰트 크기
+                    ),
+                  ),
+                ),
+                Text(_memoController.text, style: TextStyle(
+                  color: Colors.black45,
+                ),)
+              ],
+            )
+         : Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _memoController,
+                decoration: InputDecoration(
+                  //  labelText: labelText,
+                  //  hintText: hintText,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xdddddd)),
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(45, 25),
+                padding: EdgeInsets.zero,
+                backgroundColor: PRIMARY_COLOR,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // 둥근 모서리 반경
+                ),
+              ),
+              onPressed: () {
+                setState(() {
+                  showMemoPad = !showMemoPad;
+                });
+              },
+              child: Text(
+                '저장',
+                style: TextStyle(
+                  fontSize: 10, // 폰트 크기
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
