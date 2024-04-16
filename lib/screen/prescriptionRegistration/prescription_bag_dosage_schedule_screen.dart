@@ -3,20 +3,24 @@ import 'package:care_management/common/component/dosage_scedule_button.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/screen/prescriptionRegistration/dosage_input_screen.dart';
 import 'package:care_management/screen/search/medicine_search_dialog.dart';
-import 'package:care_management/screen/search/medicine_search_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PrescriptionBagDosageSceduleScreen extends StatefulWidget {
   const PrescriptionBagDosageSceduleScreen({super.key});
 
   @override
-  State<PrescriptionBagDosageSceduleScreen> createState() => _PrescriptionBagDosageSceduleScreenState();
+  State<PrescriptionBagDosageSceduleScreen> createState() =>
+      _PrescriptionBagDosageSceduleScreenState();
 }
 
-class _PrescriptionBagDosageSceduleScreenState extends State<PrescriptionBagDosageSceduleScreen> {
+class _PrescriptionBagDosageSceduleScreenState
+    extends State<PrescriptionBagDosageSceduleScreen> {
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
+    return ProviderScope(
+        child: MainLayout(
       appBartitle: '복약 계획',
       addPadding: true,
       body: Column(
@@ -39,21 +43,28 @@ class _PrescriptionBagDosageSceduleScreenState extends State<PrescriptionBagDosa
             scheduleTitle: '아침 (08:00)',
             onPressed: () {
               print('000');
-              Navigator.of(context).push(MaterialPageRoute(builder: (_)=> MedicineSearchScreen()));
-            }, isBoxSelected: true,
+              Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => MedicineSearchScreen(timezoneId: '4d771e70-68b5-44cb-8389-eaf8976f3191',timezoneTitle: '아침 (08:00)',)));
+            },
+            isBoxSelected: true,
           ),
           DosageScheduleButton(
             scheduleTitle: '점심 (08:00)',
             onPressed: () {},
             isBoxSelected: false,
           ),
-          SizedBox(height: 20.0,),
-          DoneButton(onButtonPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (_)=> DosageInputScreen()));
-          }, buttonText: '선택'),
+          SizedBox(
+            height: 20.0,
+          ),
+         /* DoneButton(
+              onButtonPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => DosageInputScreen(toAddigMedicine: null,)));
+              },
+              buttonText: '선택'),*/
         ],
       ),
-    );
+    ));
   }
 
   void _showPopup(BuildContext context) async {

@@ -1,53 +1,95 @@
 import 'package:care_management/common/component/custom_components.dart';
 import 'package:care_management/common/component/custom_text_field.dart';
+import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/const/colors.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/model/timezone_model.dart';
 import 'package:care_management/screen/medication_time_manage/med_time_manage_input_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MedTimeManageScreen extends StatefulWidget {
+class MedTimeManageScreen extends ConsumerStatefulWidget {
   MedTimeManageScreen({super.key});
 
   @override
-  State<MedTimeManageScreen> createState() => _MedTimeManageScreenState();
+  ConsumerState<MedTimeManageScreen> createState() =>
+      _MedTimeManageScreenState();
 }
 
-class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
-  List<Map<String, dynamic>> medTImeList = [
-    {'title': '아침', 'time': '08:00', 'controller': TextEditingController()},
-    {'title': '점심', 'time': '12:00', 'controller': TextEditingController()},
-  ];
+class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
+  List<TimezoneModel> timezoneModel = [];
   List<String> _timeList = [];
 
   @override
   void initState() {
+    print("initState called");
     // TODO: implement initState
-    for (Map medtime in medTImeList) {
-      medtime['controller'].text = medtime['time'];
-    }
-
     for (int hour = 0; hour < 24; hour++) {
       for (int minute in [0, 30]) {
         _timeList.add(
             '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}');
       }
     }
-
     super.initState();
+
+    Future.microtask(() => {
+      print("Before getMedTimeList"),
+      getMedTimeList(),
+      print("After getMedTimeList")
+    });
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    for (Map medtime in medTImeList) {
-      medtime['controller'].dispose();
+    for (TimezoneModel medtime in timezoneModel) {
+      medtime.controller.dispose();
     }
 
     super.dispose();
   }
 
+  void getMedTimeList() async {
+    final dio = ref.watch(dioProvider);
+
+    try {
+      final resp = await dio.get('${apiIp}/timezone',
+          options: Options(headers: {'accessToken': 'true'}));
+
+      setState(() {
+        timezoneModel = resp.data['data']
+            .map<TimezoneModel>((e) => TimezoneModel(
+                name: e['name'],
+                hour: e['hour'],
+                midday: e['midday'],
+                minute: e['minute'],
+                controller: TextEditingController(),
+                title: '${e['hour']}:${e['minute']}'))
+            .toList();
+
+        for (TimezoneModel medtime in timezoneModel) {
+          medtime.controller.text = '${medtime.title}';
+        }
+      });
+
+    } on DioException catch (e) {
+      CustomDialog.errorAlert(context, e);
+    } catch (e) {
+      print(e);
+    }
+    //medTImeList
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (timezoneModel.isEmpty) {
+      // 로딩 인디케이터 표시
+      return Center(child: CircularProgressIndicator());
+    }
+
     return MainLayout(
         appBartitle: '복약 시간대 관리',
         addPadding: true,
@@ -55,7 +97,7 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
         body: Align(
           alignment: Alignment.center,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            ...medTImeList
+            ...timezoneModel
                 .map((medTime) => Column(
                       children: [
                         SizedBox(
@@ -67,16 +109,16 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
                               Container(
                                 width: 200.0,
                                 child: GestureDetector(
-                                 /* onTap: () => _showDropdownMenu(
+                                  /* onTap: () => _showDropdownMenu(
                                       context, medTime['controller']),*/
                                   child: AbsorbPointer(
                                     child: TextField(
-                                      controller: medTime['controller'],
+                                      controller: medTime.controller,
                                       readOnly: true,
                                       textAlign: TextAlign.center,
                                       decoration: InputDecoration(
                                         icon: Text(
-                                          medTime['title'],
+                                          medTime.name,
                                           style: TextStyle(fontSize: 16.0),
                                         ),
                                         labelStyle: TextStyle(
@@ -94,9 +136,10 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => MedTimeManageInputScreen(editingMode : true, editingMedTimeData : medTime))
-                                  );
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (_) => MedTimeManageInputScreen(
+                                          editingMode: true,
+                                          editingMedTimeData: medTime)));
                                 },
                                 icon: ImageIcon(
                                     AssetImage('asset/icon/pencil.png')),
@@ -105,7 +148,7 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
                       ],
                     ))
                 .toList(),
-           /* SizedBox(
+            /* SizedBox(
               height: 60.0,
             ),
             DoneButton(
@@ -128,7 +171,6 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
               mainAxisSize: MainAxisSize.min,
               children: _timeList
                   .map((time) => ListTile(
-
                         title: Center(child: Text(time)),
                         onTap: () {
                           setState(() {
@@ -146,9 +188,8 @@ class _MedTimeManageScreenState extends State<MedTimeManageScreen> {
   Widget _renderFloatingActionButton() {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const MedTimeManageInputScreen())
-        );
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const MedTimeManageInputScreen()));
       },
       backgroundColor: PRIMARY_COLOR,
       foregroundColor: Colors.white,

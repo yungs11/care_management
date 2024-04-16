@@ -119,9 +119,7 @@ class PrescriptionHistoryScreen extends StatelessWidget {
       )
     ];
 
-    return MainLayout(
-        appBartitle: '처방 내역',
-        body: SingleChildScrollView(
+    return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: Column(
@@ -136,8 +134,7 @@ class PrescriptionHistoryScreen extends StatelessWidget {
                 ],
               )).toList(),
             ]),
-          ),
-        ));
+          ));
   }
 }
 

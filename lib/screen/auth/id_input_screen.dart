@@ -1,3 +1,6 @@
+import 'package:care_management/common/component/dialog.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/screen/DoseLog/dose_log_screen.dart';
 import 'package:care_management/screen/medication_time_manage/med_time_manage_screen.dart';
@@ -22,38 +25,33 @@ class ScreenModel {
   ScreenModel({required this.builder, required this.name});
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class IdInputScreen extends StatefulWidget {
+  const IdInputScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<IdInputScreen> createState() => _IdInputScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _IdInputScreenState extends State<IdInputScreen> {
+  String userId = '';
+  TextEditingController textController = TextEditingController();
+
   @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
-
-  fetchData() async {
-    final result = await Dio().get(
-        'https://199e-125-242-126-203.ngrok-free.app/api/v1',
-        queryParameters: {});
-
-    print(result);
+  void dispose() {
+    // TODO: implement dispose
+    textController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    /*TextEditingController controller =
-    TextEditingController();
-    ;*/
-
     final screens = [
-      ScreenModel(builder: (_) => const LoginScreen(), name: '로그인'),
       ScreenModel(builder: (_) => const RenewPasswordScreen(), name: '비밀번호변경'),
-      ScreenModel(builder: (_) => const SignUpScreen(), name: '가입하기'),
+      ScreenModel(
+          builder: (_) => SignUpScreen(
+                userId: textController.text,
+              ),
+          name: '가입하기'),
       ScreenModel(builder: (_) => const UserMainScreen(), name: '메인페이지'),
       ScreenModel(builder: (_) => const CalendarScreen(), name: '날짜선택페이지'),
       ScreenModel(
@@ -63,14 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (_) => const PrescriptionBagDosageSceduleScreen(),
           name: '복약계획 등록 페이지'),
       ScreenModel(
-          builder: (_) => const DoseLogScreen(selectedDate: '2023년 12월 29일 (금)',),
+          builder: (_) => const DoseLogScreen(
+                selectedDate: '2023년 12월 29일 (금)',
+              ),
           name: '복용 내역 페이지'),
       ScreenModel(
-          builder: (_) => PrescriptionHistoryScreen(selectedDate: DateTime(2023,12,29),),
+          builder: (_) => PrescriptionHistoryScreen(
+                selectedDate: DateTime(2023, 12, 29),
+              ),
           name: '처방 내역 페이지'),
-      ScreenModel(
-          builder: (_) => MedTimeManageScreen(),
-          name: '복약 시간대 관리 페이지'),
+      ScreenModel(builder: (_) => MedTimeManageScreen(), name: '복약 시간대 관리 페이지'),
     ];
 
     return MainLayout(
@@ -99,22 +99,52 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             CustomTextField(
               labelText: '',
+              controller: textController,
             ),
             const SizedBox(
               height: 60.0,
             ),
             DoneButton(
-                onButtonPressed: () {
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()));
+                onButtonPressed: () async {
+                  final dio = Dio();
+                  try {
+                    final resp =
+                        await dio.post('${apiIp}/user/check-email', data: {
+                      'email': textController.text,
+                    });
+
+                    //가입이 가능한 상태(중복 이메일 없음)
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => SignUpScreen(
+                              userId: textController.text,
+                            )));
+                  } on DioException catch (e) {
+                    print('----------------');
+                    print(e.response);
+                    // 가입이 불가능한 상태(중복 이메일이 있음 -> 로그인페이지로 이동)
+                    if (e.response!.data['code'] == 500) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => LoginScreen(
+                                userId: textController.text,
+                              )));
+                    }else{
+                      // 500 아닌 경우 오류 메시지
+                      return CustomDialog.showAlert(
+                          context, e.response!.data['message']);
+                    }
+
+
+                  } catch (e) {
+                    return CustomDialog.showAlert(context, '에러 발생');
+                  }
                 },
                 buttonText: '확인'),
             Column(
                 children: screens
                     .map((screen) => ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(builder: screen.builder));
+                            Navigator.of(context).push(
+                                MaterialPageRoute(builder: screen.builder));
                           },
                           child: Text(screen.name),
                         ))

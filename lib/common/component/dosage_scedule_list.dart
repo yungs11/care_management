@@ -1,6 +1,6 @@
 import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/model/schedule_medicine_model.dart';
-import 'package:care_management/screen/search/medicine_search_screen.dart';
+import 'package:care_management/common/model/medicine_item_model.dart';
+import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
 import 'package:flutter/material.dart';
 
 class DosageScheduleList extends StatefulWidget {
@@ -8,7 +8,7 @@ class DosageScheduleList extends StatefulWidget {
   final VoidCallback onPressed;
   final bool isBoxSelected;
   final bool isCopyMode;
-  final List<MedicationItem> medicines;
+  final List<MedicineItemModel> medicines;
 
   const DosageScheduleList({
     super.key,
@@ -74,7 +74,7 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                           itemBuilder: (context, index) {
                             final item = widget.medicines[index];
                             return Dismissible(
-                              key: Key(item.name),
+                              key: Key(item.name!),
                               onDismissed: (direction) {
                                 setState(() {
                                   widget.medicines.removeAt(index);
@@ -91,19 +91,19 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                                   leading: IconButton(
                                     icon: Icon(
                                       Icons.circle_outlined,
-                                      color: item.selected
+                                      color: item.selected!
                                           ? PRIMARY_COLOR
                                           : Colors.grey,
                                       size: 10.0,
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        item.selected = !item.selected;
+                                        item.selected = !item.selected!;
                                       });
                                     },
                                   ),
 
-                                  title: Text(item.name),
+                                  title: Text(item.name!),
                                   trailing: IconButton(
                                     icon: Icon(Icons.close, size: 15.0),
                                     onPressed: () {
@@ -131,7 +131,7 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                               ),
                               onPressed: () {
                                 Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (_) => MedicineSearchScreen()));
+                                    builder: (_) => MedicineSearchScreen(timezoneId: '11', timezoneTitle: '아침 (08:00)',)));
                               },
                             ),
                           ),

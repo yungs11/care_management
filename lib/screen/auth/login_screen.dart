@@ -1,20 +1,43 @@
+import 'dart:convert';
+
+import 'package:care_management/common/component/dialog.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/join_layout.dart';
+import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/secure_storage/secure_storage.dart';
+import 'package:care_management/screen/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/common/component/custom_components.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class LoginScreen extends ConsumerStatefulWidget {
+  final String userId;
+
+  const LoginScreen({
+    super.key,
+    required this.userId,
+  });
+
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  TextEditingController _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final dio = Dio();
-
-  /*
-    final emulatorIp = '10.0.2.2:3000';
-    final simulatorIp = '127.0.0.1:3000';
-
-    final ip = Platform.isIOS? simulatorIp : emulatorIp;*/
+    final dio = ref.watch(dioProvider);
+    print('userId > ${widget.userId}');
 
     return JoinLayout(
       appBartitle: '',
@@ -35,35 +58,108 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(
               height: 53.0,
             ),
-            const CustomTextField(labelText: '',),
+            CustomTextField(
+              labelText: '',
+              controller: _textController,
+            ),
             const SizedBox(
               height: 60.0,
             ),
             DoneButton(
               onButtonPressed: () async {
-              /*  final rawString = 'test@codefactory.ai:testtest';
+                //id, pwd
+                final rawString = '${widget.userId}:${_textController.text}';
 
+                print(rawString);
                 Codec<String, String> stringToBase64 = utf8.fuse(base64);
+                String token = stringToBase64.encode(rawString);
 
-                String token = stringToBase64.encode(rawString);*/
-
-                Map<String, dynamic> body =  {
-                  "email": "lafin716@naver.com",
-                  "password": "test",
+                Map<String, dynamic> body = {
+                  "email":
+                      widget.userId, //'lafin716@naver.com', //widget.userId,
+                  "password":
+                      _textController.text, //'test', //_textController.text,
                   "auto_login": true
                 };
-                String str = body.toString();
 
-                final resp = await Dio().post(
-                    'http://192.168.217.128:8080/api/v1/auth/signin',
-                    data: body);
+                print('${apiIp}/auth/signin');
 
-                print(resp.data);
+                try {
+                  final resp = await dio.post('${apiIp}/auth/signin',
+                      /*options: Options(headers: {
+                        'authorization': 'Bearer $token',
+                      }),*/
+                      data: body);
+
+                  print(resp);
+
+                  final responseData = resp.data['data']; // 최상위 'data' 필드에 접근
+                  final refreshToken = responseData[
+                      'refresh_token']; // 'data' 객체 내의 'refresh_token'
+                  final accessToken = responseData[
+                      'access_token']; // 'data' 객체 내의 'access_token'
+
+                  final storage = ref.read(secureStorageProvider);
+
+                  await storage.write(
+                      key: REFRESH_TOKEN_KEY, value: refreshToken);
+                  await storage.write(
+                      key: ACCESS_TOKEN_KEY, value: accessToken);
+
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => MainLayout(
+                          appBartitle: '',
+                          body: UserMainScreen(),
+                          addPadding: false,
+                        ),
+                      ),
+                      (route) => false);
+                } on DioException catch (e) {
+                  print(e.response);
+                  if (e.response!.data['errors'] != null) {
+                    return CustomDialog.showAlert(
+                        context,
+                        e.response!.data['errors'].values
+                            .toString()
+                            .replaceAll(RegExp(r'\(|\)'), ''));
+                  } else {
+                    return CustomDialog.showAlert(
+                        context, e.response!.data['message']);
+                  }
+                } catch (e) {
+                  print(e);
+                }
               },
               buttonText: '로그인',
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () async {
+                final refreshToken = '';
+
+                try {
+                  final resp = await Dio().post(
+                    '${apiIp}/auth/token',
+                    options: Options(headers: {
+                      'authorization': 'Bearer $refreshToken',
+                    }),
+                  );
+                } on DioException catch (e) {
+                  print(e.response);
+                  if (e.response!.data['errors'] != null) {
+                    return CustomDialog.showAlert(
+                        context,
+                        e.response!.data['errors'].values
+                            .toString()
+                            .replaceAll(RegExp(r'\(|\)'), ''));
+                  } else {
+                    return CustomDialog.showAlert(
+                        context, e.response!.data['message']);
+                  }
+                } catch (e) {
+                  print(e);
+                }
+              },
               child: const Text(
                 '비밀번호를 잊으셨나요?',
                 style: TextStyle(decoration: TextDecoration.underline),

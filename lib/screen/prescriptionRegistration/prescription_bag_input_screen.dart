@@ -1,18 +1,23 @@
 import 'package:care_management/common/component/custom_components.dart';
+import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/model/prescription_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PrescriptionBagInputScreen extends StatefulWidget {
+class PrescriptionBagInputScreen extends ConsumerStatefulWidget {
   const PrescriptionBagInputScreen({super.key});
 
   @override
-  State<PrescriptionBagInputScreen> createState() =>
+  ConsumerState<PrescriptionBagInputScreen> createState() =>
       _PrescriptionBagInputScreenState();
 }
 
 class _PrescriptionBagInputScreenState
-    extends State<PrescriptionBagInputScreen> {
+    extends ConsumerState<PrescriptionBagInputScreen> {
+
+
   final TextEditingController _prescriptionTitleController =
       TextEditingController();
 
@@ -25,10 +30,10 @@ class _PrescriptionBagInputScreenState
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      appBartitle: '약봉투 등록',
-      addPadding: true,
-      body: Column(
+
+
+
+    return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomTextField(
@@ -40,13 +45,27 @@ class _PrescriptionBagInputScreenState
           ),
           DoneButton(
             buttonText: '등록 시작',
-            onButtonPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => PrescriptionBagDetailScreen()));
+            onButtonPressed: () async{
+              if(_prescriptionTitleController.text.isEmpty) {
+                return CustomDialog.showAlert(context, '처방전 이름을 등록해주세요!');
+              }
+
+              try{
+                ref.read(prescriptionProvider.notifier).initPrescription();
+                ref.read(prescriptionProvider.notifier).updatePrescriptionName(_prescriptionTitleController.text);
+
+                print('------------');
+                print(ref.read(prescriptionProvider).prescriptionName);
+
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => PrescriptionBagDetailScreen()));
+              }catch(e){
+                  return CustomDialog.showAlert(context, '오류가 발생했습니다');
+              }
+
             },
           )
         ],
-      ),
     );
   }
 }

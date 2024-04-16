@@ -141,9 +141,7 @@ class UserMainScreen extends StatelessWidget {
       )
     ];
 
-    return MainLayout(
-      appBartitle: '',
-      body: SafeArea(
+    return SafeArea(
           child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -164,8 +162,7 @@ class UserMainScreen extends StatelessWidget {
             Expanded(child: renderPillCard(pillListPerSchedules)),
           ],
         ),
-      )),
-    );
+      ));
   }
 
   Widget renderDateHeader() {

@@ -12,7 +12,7 @@ class CustomTitle extends StatelessWidget {
     return Text(
       titleText,
       style: const TextStyle(
-        fontSize: 24.0,
+        fontSize: 22.0,
         fontFamily: 'Pretendard',
         fontWeight: FontWeight.w900,
         //fontFamily:
@@ -42,12 +42,13 @@ class CustomTextField extends StatelessWidget {
   final bool? isNumber;
   //final String hintText;
   final TextEditingController? controller;
+  final ValueChanged? onChanged;
 
   const CustomTextField(
       {super.key,
       required this.labelText,
       //  required this.hintText,
-      this.controller, this.suffixText, this.isNumber = false});
+      this.controller, this.suffixText, this.isNumber = false, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -61,13 +62,21 @@ class CustomTextField extends StatelessWidget {
         SizedBox(height: 8.0),*/
         Expanded(
           flex: 3,
-          child: TextField(
+          child: TextFormField(
             controller: controller,
+            onChanged: onChanged ,
             keyboardType: !isNumber! ? TextInputType.text : TextInputType.number,
             textAlign: TextAlign.right,
             inputFormatters: !isNumber! ? [] : [
               FilteringTextInputFormatter.digitsOnly
             ],
+            validator: (String? val) {
+              if (val == null || val.isEmpty) {
+                return '값을 입력해주세요.';
+              }
+
+              return null;
+            },
             decoration: InputDecoration(
               labelText: labelText,
             //  icon: Text(labelText, style: TextStyle(fontSize: 16.0),),
