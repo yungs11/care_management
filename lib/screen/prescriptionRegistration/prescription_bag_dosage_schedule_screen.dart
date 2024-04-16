@@ -1,22 +1,70 @@
 import 'package:care_management/common/component/custom_components.dart';
+import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/component/dosage_scedule_button.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/model/timezone_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/dosage_input_screen.dart';
 import 'package:care_management/screen/search/medicine_search_dialog.dart';
 import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PrescriptionBagDosageSceduleScreen extends StatefulWidget {
+class PrescriptionBagDosageSceduleScreen extends ConsumerStatefulWidget {
   const PrescriptionBagDosageSceduleScreen({super.key});
 
+
+
   @override
-  State<PrescriptionBagDosageSceduleScreen> createState() =>
+  ConsumerState<PrescriptionBagDosageSceduleScreen> createState() =>
       _PrescriptionBagDosageSceduleScreenState();
 }
 
 class _PrescriptionBagDosageSceduleScreenState
-    extends State<PrescriptionBagDosageSceduleScreen> {
+    extends ConsumerState<PrescriptionBagDosageSceduleScreen> {
+  List<TimezoneModel> timezoneModel = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    Future.microtask(() =>
+        getTimezonList()
+    );
+  }
+
+
+  void getTimezonList() async {
+    final dio = ref.watch(dioProvider);
+
+    try {
+      final resp = await dio.get('${apiIp}/timezone',
+          options: Options(headers: {'accessToken': 'true'}));
+
+      setState(() {
+        timezoneModel = resp.data['data']
+            .map<TimezoneModel>((e) => TimezoneModel(
+            id: e['id'],
+            name: e['name'],
+            hour: e['hour'],
+            midday: e['midday'],
+            minute: e['minute'],
+            controller: TextEditingController(),
+            title: '${e['name']} (${e['hour']}:${e['minute']})'))
+            .toList();
+
+      });
+
+    } on DioException catch (e) {
+      CustomDialog.errorAlert(context, e);
+    } catch (e) {
+      print(e);
+    }
+    //medTImeList
+  }
+
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
@@ -39,20 +87,14 @@ class _PrescriptionBagDosageSceduleScreenState
                   )),
             ],
           ),
-          DosageScheduleButton(
-            scheduleTitle: '아침 (08:00)',
+          ...timezoneModel.asMap().entries.map((timezone) => DosageScheduleButton(
+            scheduleTitle: timezone.value.title,
             onPressed: () {
-              print('000');
               Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => MedicineSearchScreen(timezoneId: '4d771e70-68b5-44cb-8389-eaf8976f3191',timezoneTitle: '아침 (08:00)',)));
+                  MaterialPageRoute(builder: (_) => MedicineSearchScreen(timezoneId: timezone.value.id,timezoneTitle: timezone.value.title,)));
             },
-            isBoxSelected: true,
-          ),
-          DosageScheduleButton(
-            scheduleTitle: '점심 (08:00)',
-            onPressed: () {},
-            isBoxSelected: false,
-          ),
+            isBoxSelected: timezone.key == 0 ? true : false,
+          ),).toList(),
           SizedBox(
             height: 20.0,
           ),

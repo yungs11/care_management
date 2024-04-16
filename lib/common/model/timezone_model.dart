@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TimezoneModel {
+  final String id;
   final String name;
   final String hour;
   final String midday;
@@ -11,6 +12,7 @@ class TimezoneModel {
 
 
   TimezoneModel({
+    required this.id,
     required this.name,
     required this.hour,
     required this.midday,

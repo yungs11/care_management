@@ -36,9 +36,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
     super.initState();
 
     Future.microtask(() => {
-      print("Before getMedTimeList"),
       getMedTimeList(),
-      print("After getMedTimeList")
     });
   }
 
@@ -62,6 +60,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
       setState(() {
         timezoneModel = resp.data['data']
             .map<TimezoneModel>((e) => TimezoneModel(
+                id: e['id'],
                 name: e['name'],
                 hour: e['hour'],
                 midday: e['midday'],
