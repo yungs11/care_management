@@ -1,46 +1,55 @@
+import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/const/colors.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class MainCardList extends StatefulWidget {
+class MainCardList extends ConsumerStatefulWidget {
   final String title;
+  final String timezoneId;
   DateTime takingTime;
+  final DateTime selectedDay;
   final String? memo;
   final List<TakingMedicineItem> medicineList;
-
-  bool takeYN = false;
-
-
-
-  MainCardList(
-      {super.key,
-      required this.title,
-      required this.takingTime,
-      this.memo,
-      required this.medicineList});
+  bool take_status;
+  VoidCallback? onReloadRequest;
+  MainCardList({
+    super.key,
+    required this.title,
+    required this.timezoneId,
+    required this.takingTime,
+    required this.selectedDay,
+    this.memo,
+    required this.medicineList,
+    this.take_status = false,
+    this.onReloadRequest,
+  });
 
   @override
-  State<MainCardList> createState() => _MainCardListState();
+  ConsumerState<MainCardList> createState() => _MainCardListState();
 }
 
-class _MainCardListState extends State<MainCardList> {
+class _MainCardListState extends ConsumerState<MainCardList> {
   String? dayOrNight;
 
   @override
   void dispose() {
     // TODO: implement dispose
     for (TakingMedicineItem medicine in widget.medicineList) {
-      medicine.controller.dispose();
+      medicine.controller!.dispose();
     }
     super.dispose();
   }
 
-  void _updateTakingCount(TakingMedicineItem pill, double value) {
+  void _updatetakeAmount(TakingMedicineItem pill, double value) {
     setState(() {
-      pill.controller.text = FormatUtil.doubleToString(value);
+      pill.controller!.text = FormatUtil.doubleToString(value);
     });
   }
 
@@ -55,49 +64,72 @@ class _MainCardListState extends State<MainCardList> {
 
   Widget renderExpansionCard(List<TakingMedicineItem> medicineList) {
     return ExpansionTile(
-      title: renderTitleTakingTiming(widget.title, widget.takingTime),
-      initiallyExpanded: false,
+      title: renderTitleTakingTiming(
+          widget.title, widget.timezoneId, widget.takingTime),
+      initiallyExpanded: true,
       children: <Widget>[
         const Divider(
           height: 3,
           color: Color(0xffddddddd),
         ),
         ...medicineList.map((medicine) => renderPillItem(medicine)),
-        MemoBox(memo: widget.memo!),
+        MemoBox(
+          memo: widget.memo!,
+          timezoneId: widget.timezoneId,
+          onReloadRequest: widget.onReloadRequest!,
+          selectedDay: widget.selectedDay,
+        ),
       ],
     );
   }
 
-  Widget renderTitleTakingTiming(String timingTitle, DateTime timingTime) {
+  Widget renderTitleTakingTiming(
+      String timingTitle, String timingId, DateTime timingTime) {
     return Container(
       height: 70.0,
       padding: EdgeInsets.only(left: 0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
         Container(
-          width: 20.0,
+          width: 70.0,
           child: IconButton(
-              onPressed: () {
-                setState(() {
-                  final now = DateTime.now().toLocal();
-                  widget.takeYN = !widget.takeYN;
-                  for (TakingMedicineItem medicine in widget.medicineList) {
-                    medicine.takingYN = widget.takeYN;
-                  }
+              onPressed: () async {
+                final dio = ref.watch(dioProvider);
 
-                  if (widget.takeYN) {
-                    widget.takingTime = now;
-                  } else {
-                    widget.takingTime = DateTime(0);
-                  }
+                try {
+                  await dio.post('${apiIp}/plan/take',
+                      options: Options(headers: {'accessToken': 'true'}),
+                      data: {
+                        'target_date':
+                            DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                        'timezone_id': timingId,
+                      });
 
-                  for (TakingMedicineItem medicine in widget.medicineList) {
-                    medicine.takingTime = widget.takingTime;
-                  }
-                });
+                  widget.onReloadRequest!();
+
+                  /* setState(() {
+                    final now = DateTime.now().toLocal();
+                    widget.takeYN = !widget.takeYN;
+                    for (TakingMedicineItem medicine in widget.medicineList) {
+                      medicine.takeStatus = widget.takeYN;
+                    }
+
+                    if (widget.takeYN) {
+                      widget.takingTime = now;
+                    } else {
+                      widget.takingTime = DateTime(0);
+                    }
+
+                    for (TakingMedicineItem medicine in widget.medicineList) {
+                      medicine.takingTime = widget.takingTime;
+                    }
+                  });  */
+                } on DioException catch (e) {
+                  CustomDialog.errorAlert(context, e);
+                } catch (e) {}
               },
               icon: Icon(
                 Icons.circle_outlined,
-                color: widget.takeYN ? PRIMARY_COLOR : Colors.grey,
+                color: widget.take_status ? PRIMARY_COLOR : Colors.grey,
               )),
         ),
         Container(
@@ -109,7 +141,7 @@ class _MainCardListState extends State<MainCardList> {
         Container(
           width: 80.0,
           child: Row(
-            children: widget.takeYN
+            children: widget.take_status
                 ? [
                     Text(FormatUtil.getTimeFromDateTime(widget.takingTime),
                         style: const TextStyle(
@@ -133,11 +165,11 @@ class _MainCardListState extends State<MainCardList> {
   }
 
   Widget renderPillItem(TakingMedicineItem pill) {
-    //_textController.text= pill['takingCount'].toString() ?? '';
+    //_textController.text= pill['takeAmount'].toString() ?? '';
 
     return SizedBox(
       child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-        renderPillTakingYNIcon(pill),
+        renderPilltakeStatusIcon(pill),
         renderPillName(pill),
         renderPillTakingTime(pill),
         renderPillDoseCounter(pill),
@@ -145,24 +177,41 @@ class _MainCardListState extends State<MainCardList> {
     );
   }
 
-  Widget renderPillTakingYNIcon(pill) {
+  Widget renderPilltakeStatusIcon(pill) {
     return Expanded(
       flex: 1,
       child: IconButton(
-          onPressed: () {
+          onPressed: () async {
+            final dio = ref.watch(dioProvider);
+
+            try {
+              await dio.post('${apiIp}/plan/take/pill',
+                  options: Options(headers: {'accessToken': 'true'}),
+                  data: {
+                    'pill_id': pill.takeHistoryItemId,
+                  });
+
+              widget.onReloadRequest!();
+
+              /*
             setState(() {
               final now = DateTime.now().toLocal();
-              pill.takingYN = !pill.takingYN;
-              if (pill.takingYN) {
+              pill.takeStatus = !pill.takeStatus;
+              if (pill.takeStatus) {
                 pill.takingTime = DateTime.now();
               } else {
                 pill.takingTime = DateTime(0);
               }
             });
+                    }
+                  });  */
+            } on DioException catch (e) {
+              CustomDialog.errorAlert(context, e);
+            } catch (e) {}
           },
           icon: Icon(
             Icons.circle_outlined,
-            color: pill.takingYN ? PRIMARY_COLOR : Colors.grey,
+            color: pill.takeStatus ? PRIMARY_COLOR : Colors.grey,
             size: 10.0,
           )),
     );
@@ -171,7 +220,7 @@ class _MainCardListState extends State<MainCardList> {
   Widget renderPillName(pill) {
     return Expanded(
       flex: 2,
-      child: Text(pill.name,
+      child: Text(pill.pillName,
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0)),
     );
   }
@@ -179,7 +228,7 @@ class _MainCardListState extends State<MainCardList> {
   Widget renderPillTakingTime(pill) {
     return Expanded(
       child: Row(
-        children: pill.takingYN
+        children: pill.takeStatus
             ? [
                 Text(FormatUtil.getTimeFromDateTime(pill.takingTime),
                     style: const TextStyle(
@@ -216,12 +265,12 @@ class _MainCardListState extends State<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
-                if (pill.takingCount - 1 < 0) {
-                  pill.takingCount = 0;
+                if (pill.takeAmount - 1 < 0) {
+                  pill.takeAmount = 0;
                 } else {
-                  pill.takingCount -= 1;
+                  pill.takeAmount -= 1;
                 }
-                _updateTakingCount(pill, pill.takingCount);
+                _updatetakeAmount(pill, pill.takeAmount);
               },
               padding: const EdgeInsets.only(bottom: 5.0), // 패딩 제거
               icon: const Icon(
@@ -259,9 +308,9 @@ class _MainCardListState extends State<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
-                pill.takingCount += 1;
+                pill.takeAmount += 1;
 
-                _updateTakingCount(pill, pill.takingCount);
+                _updatetakeAmount(pill, pill.takeAmount);
               },
               padding: EdgeInsets.zero, // 패딩 제거
               icon: const Icon(
@@ -274,32 +323,53 @@ class _MainCardListState extends State<MainCardList> {
       ),
     );
   }
-
 }
 
-  class MemoBox extends StatefulWidget {
-    final String memo;
+class MemoBox extends ConsumerStatefulWidget {
+  final String memo;
+  final DateTime selectedDay;
+  final String timezoneId;
+  final VoidCallback onReloadRequest;
 
-    MemoBox({required this.memo});
+  MemoBox({
+    required this.memo,
+    required this.selectedDay,
+    required this.timezoneId,
+    required this.onReloadRequest,
+  });
 
-    @override
-    State<MemoBox> createState() => _MemoBoxState();
-  }
+  @override
+  ConsumerState<MemoBox> createState() => _MemoBoxState();
+}
 
-
-class _MemoBoxState extends State<MemoBox> {
+class _MemoBoxState extends ConsumerState<MemoBox> {
   bool showMemoPad = false;
   TextEditingController _memoController = TextEditingController(); // 컨트롤러 추가
 
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    if(widget.memo != ''){
+      _memoController.text = widget.memo;
+    }
+  }
 
   @override
-    Widget build(BuildContext context) {
-      return Container(
-        //width: MediaQuery.of(context).size.width /2 ,
-        margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-        child:
-            !showMemoPad ?
-            Row(
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _memoController.dispose();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      //width: MediaQuery.of(context).size.width /2 ,
+      margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      child: !showMemoPad
+          ? Row(
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -325,49 +395,76 @@ class _MemoBoxState extends State<MemoBox> {
                     ),
                   ),
                 ),
-                Text(_memoController.text, style: TextStyle(
-                  color: Colors.black45,
-                ),)
+                Text(
+                  _memoController.text,
+                  style: TextStyle(
+                    color: Colors.black45,
+                  ),
+                )
               ],
             )
-         : Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _memoController,
-                decoration: InputDecoration(
-                  //  labelText: labelText,
-                  //  hintText: hintText,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xdddddd)),
+          : Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _memoController,
+                    decoration: InputDecoration(
+                      //  labelText: labelText,
+                      //  hintText: hintText,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xdddddd)),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(45, 25),
-                padding: EdgeInsets.zero,
-                backgroundColor: PRIMARY_COLOR,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0), // 둥근 모서리 반경
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(45, 25),
+                    padding: EdgeInsets.zero,
+                    backgroundColor: PRIMARY_COLOR,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0), // 둥근 모서리 반경
+                    ),
+                  ),
+                  onPressed: () async {
+                      final dio = ref.watch(dioProvider);
+
+                      try {
+                      final resp = await dio.post('${apiIp}/plan/memo',
+                      options: Options(headers: {'accessToken': 'true'}),
+                      data: {
+                      'date': DateFormat('yyyy-MM-dd')
+                          .format(widget.selectedDay),
+                      'timezone_id': widget.timezoneId,
+                      'memo': _memoController.text,
+                      });
+
+                      print(DateFormat('yyyy-MM-dd').format(widget.selectedDay));
+                      print(widget.timezoneId);
+                      print(_memoController.text);
+                      print(resp);
+
+
+                      widget.onReloadRequest!();
+                      } on DioException catch (e) {
+                      CustomDialog.errorAlert(context, e);
+                      } catch (e) {
+                      CustomDialog.errorExceptionAlert(context, e);
+                      }/*
+                    setState(() {
+                      showMemoPad = !showMemoPad;
+                    });*/
+                  },
+                  child: Text(
+                      '저장',
+                      style: TextStyle(
+                        fontSize: 10, // 폰트 크기
+                      ),
+                    ),
                 ),
-              ),
-              onPressed: () {
-                setState(() {
-                  showMemoPad = !showMemoPad;
-                });
-              },
-              child: Text(
-                '저장',
-                style: TextStyle(
-                  fontSize: 10, // 폰트 크기
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
+    );
   }
+}

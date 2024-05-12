@@ -8,4 +8,4 @@ final emulatorIp = '10.0.2.2:3000';
 final simulatorIP = '127.0.0.1:3000';
 //final ip = Platform.isIOS ? simulatorIP : emulatorIp;
 
-const apiIp = 'http://192.168.217.128:8080/api/v1';
+const apiIp = 'http://ec2-54-180-146-72.ap-northeast-2.compute.amazonaws.com:8080/api/v1';

@@ -1,159 +1,130 @@
+import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/component/log_card_list.dart';
 import 'package:care_management/common/component/main_card_list.dart';
 import 'package:care_management/common/component/card_title.dart';
 import 'package:care_management/common/const/colors.dart';
+import 'package:care_management/common/const/data.dart';
+import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class DoseLogScreen extends StatelessWidget {
-  final String selectedDate;
+class DoseLogScreen extends ConsumerStatefulWidget {
+  DateTime selectedDay;
 
-  const DoseLogScreen({super.key, required this.selectedDate});
+  DoseLogScreen({super.key, required this.selectedDay});
+
+  @override
+  ConsumerState<DoseLogScreen> createState() => _DoseLogScreenState();
+}
+
+class _DoseLogScreenState extends ConsumerState<DoseLogScreen> {
+  List<MedicationScheduleBoxModel> scheduleBoxModel = [];
+  Future<List<MedicationScheduleBoxModel>>? dataFuture;
+  //TextEditingController dateController=TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    dataFuture = getTakingList();
+  }
+
+  Future<List<MedicationScheduleBoxModel>> getTakingList() async {
+    final dio = ref.watch(dioProvider);
+
+    try {
+      final resp = await dio.get('${apiIp}/plan',
+          options: Options(headers: {'accessToken': 'true'}),
+          queryParameters: {
+            'date': DateFormat('yyyy-MM-dd').format(widget.selectedDay)
+          });
+      scheduleBoxModel = resp.data['data']['plans']
+          .map<MedicationScheduleBoxModel>(
+              (e) => MedicationScheduleBoxModel.fromJson(json: e))
+          .toList();
+
+      //     ref.read(MedicationScheduleBoxProvider.notifier).initMedicationBoxModel(scheduleBoxModel);
+
+      print(
+          '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
+    } on DioException catch (e) {
+      CustomDialog.errorAlert(context, e);
+    } catch (e) {
+      print(e);
+    }
+
+    return scheduleBoxModel;
+    //medTImeList
+  }
+
+  void reloadData() {
+    setState(() {
+      dataFuture = getTakingList(); // 데이터 재요청
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<MedicationScheduleBoxModel> pillListPerSchedules = [
-      MedicationScheduleBoxModel(
-        title: '아침 약',
-        takeDateTime: DateTime(2023, 12, 29, 09, 55, 0),
-        medicines: <TakingMedicineItem>[
-          TakingMedicineItem(
-            name: '코푸시럽',
-            takingTime: DateTime(2023, 12, 29, 09, 55, 0),
-            takingCount: 1,
-            takingYN: true,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '모비드캡슐',
-            takingTime: DateTime(2023, 12, 29, 09, 55, 0),
-            takingCount: 1,
-            takingYN: false,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '무코레바정',
-            takingTime: DateTime(2023, 12, 29, 09, 55, 0),
-            takingCount: 1,
-            takingYN: false,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '트라몰서방정',
-            takingTime: DateTime(2023, 12, 29, 09, 55, 0),
-            takingCount: 0.5,
-            takingYN: false,
-            controller: TextEditingController(text: 0.5.toString()),
-          ),
-        ],
-      ),
-      MedicationScheduleBoxModel(
-          title: '점심 약',
-          takeDateTime: DateTime(2023, 12, 29, 12, 55, 0),
-          medicines: <TakingMedicineItem>[
-            TakingMedicineItem(
-              name: '코푸시럽',
-              takingTime: DateTime(2023, 12, 29, 12, 55, 0),
-              takingCount: 1,
-              takingYN: true,
-              controller: TextEditingController(text: 1.toString()),
-            ),
-            TakingMedicineItem(
-              name: '모비드캡슐',
-              takingTime: DateTime(2023, 12, 29, 12, 55, 0),
-              takingCount: 1,
-              takingYN: false,
-              controller: TextEditingController(text: 1.toString()),
-            ),
-            TakingMedicineItem(
-              name: '무코레바정',
-              takingTime: DateTime(2023, 12, 29, 12, 55, 0),
-              takingCount: 1,
-              takingYN: false,
-              controller: TextEditingController(text: 1.toString()),
-            ),
-            TakingMedicineItem(
-              name: '트라몰서방정',
-              takingTime: DateTime(2023, 12, 29, 12, 55, 0),
-              takingCount: 0.5,
-              takingYN: false,
-              controller: TextEditingController(text: 0.5.toString()),
-            ),
-          ]),
-      MedicationScheduleBoxModel(
-        title: '저녁 약',
-        takeDateTime: DateTime(2023, 12, 29, 19, 55, 0),
-        medicines: <TakingMedicineItem>[
-          TakingMedicineItem(
-            name: '코푸시럽',
-            takingTime: DateTime(2023, 12, 29, 19, 55, 0),
-            takingCount: 1,
-            takingYN: true,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '모비드캡슐',
-            takingTime: DateTime(2023, 12, 29, 19, 55, 0),
-            takingCount: 1,
-            takingYN: false,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '무코레바정',
-            takingTime: DateTime(2023, 12, 29, 19, 55, 0),
-            takingCount: 1,
-            takingYN: false,
-            controller: TextEditingController(text: 1.toString()),
-          ),
-          TakingMedicineItem(
-            name: '트라몰서방정',
-            takingTime: DateTime(2023, 12, 29, 19, 55, 0),
-            takingCount: 0.5,
-            takingYN: false,
-            controller: TextEditingController(text: 0.5.toString()),
-          ),
-        ],
-      )
-    ];
-
-    return MainLayout(
-      appBartitle: '',
-      body: SafeArea(
-          child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            renderDateHeader(selectedDate),
-            const SizedBox(
-              height: 50.0,
-            ),
-            Expanded(child: renderPillCard(pillListPerSchedules)),
-          ],
-        ),
-      )),
-    );
+    return FutureBuilder<List<MedicationScheduleBoxModel>>(
+        future: dataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return MainLayout(
+                appBartitle: '',
+                body:
+                    Center(child: CircularProgressIndicator())); // 로딩 인디케이터 표시
+          } else if (snapshot.hasError) {
+            return MainLayout(
+                appBartitle: '',
+                body: Center(
+                    child:
+                        Text('오류가 발생하였습니다: ${snapshot.error}'))); // 오류 메시지 표시
+          } else {
+            return MainLayout(
+              appBartitle: '',
+              body: SafeArea(
+                  child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    renderDateHeader(),
+                    const SizedBox(
+                      height: 50.0,
+                    ),
+                    Expanded(child: renderPillCard(scheduleBoxModel)),
+                  ],
+                ),
+              )),
+            );
+          }
+        });
   }
 
-  Widget renderDateHeader(String selectedDate) {
-    return Text(
-      selectedDate,
-      style: TextStyle(
-        fontSize: 20.0,
-        fontWeight: FontWeight.w700,
-      ),
-    );
+  Widget renderDateHeader() {
+    return InkWell(
+        onTap: () => _selectDate(context),
+        child: Text(
+          DateFormat('yyyy-MM-dd').format(widget.selectedDay),
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.w700,
+          ),
+        ));
   }
 
-  Widget renderPillCard(List<MedicationScheduleBoxModel> pillListPerSchedules) {
+  Widget renderPillCard(List<MedicationScheduleBoxModel> scheduleBoxModel) {
     return Column(
       //mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const CardTitle(title: ''),
+        CardTitle(
+            title: DateFormat('yyyy-MM-dd').format(widget.selectedDay),
+            isToday: DateFormat('yyyy-MM-dd').format(widget.selectedDay) ==
+                DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc())),
         Expanded(
           child: SingleChildScrollView(
             child: Card(
@@ -165,13 +136,39 @@ class DoseLogScreen extends StatelessWidget {
                         bottomRight: Radius.circular(4.0))),
                 //color: lightColor,
                 child: Column(
-                  children:
-                  pillListPerSchedules.map((pillListPerTimeBox)=> LogCardList(title: pillListPerTimeBox.title, takingTime: pillListPerTimeBox.takeDateTime!, medicineList : pillListPerTimeBox.medicines!)).toList()
-
-                )),
+                    children: scheduleBoxModel
+                        .map((pillListPerTimeBox) =>
+                            LogCardList(timezoneList: pillListPerTimeBox))
+                        .toList())),
           ),
         )
       ],
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2025),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor:
+                Theme.of(context).primaryColor.withAlpha(128), // 헤더 배경 색상
+            //accentColor: Colors.blue, // 선택된 날짜 및 현재 날짜 색상
+            colorScheme: ColorScheme.light(
+                primary: Theme.of(context).primaryColor.withOpacity(0.5)),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != DateTime.now()) {
+      widget.selectedDay = picked.toUtc(); //"${picked.toUtc()}".split(' ')[0];
+      reloadData();
+    }
   }
 }

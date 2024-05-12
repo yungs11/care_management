@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class CardTitle extends StatelessWidget {
   final String title;
-  const CardTitle({super.key, required this.title});
+  final bool isToday;
+  const CardTitle({super.key, required this.title, required this.isToday});
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +26,8 @@ class CardTitle extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w700),
                 //textAlign: TextAlign.c,
               ),
-              const Text(
-                '오늘',
+              Text(
+                isToday ? '오늘' : '',
                 style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey),
                 //textAlign: TextAlign.left,
               ),

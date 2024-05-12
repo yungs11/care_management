@@ -23,6 +23,8 @@ class _PrescriptionBagDetailScreenState
 
   @override
   void dispose() {
+    print('----Prescrition detail dispose------');
+
     // TODO: implement dispose
     _hospitalController.dispose();
     _startDateController.dispose();
@@ -32,6 +34,8 @@ class _PrescriptionBagDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    print('----Prescrition detail -build------');
+
     return MainLayout(
       appBartitle: '약봉투 등록',
       addPadding: true,

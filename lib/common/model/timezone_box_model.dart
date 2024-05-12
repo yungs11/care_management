@@ -20,24 +20,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
  *
  */
 
+final timezoneProvider =
+    StateNotifierProvider<TimezoneNotifier, List<TimezoneBoxModel>>(
+        (ref) => TimezoneNotifier());
 
-final timezoneProvider = StateNotifierProvider<TimezoneNotifier, List<TimezonBoxModel>>((ref) => TimezoneNotifier());
-
-
-class TimezonBoxModel{
+class TimezoneBoxModel {
   final String? timezoneId;
   final String? timezoneTitle;
   final List<MedicineItemModel>? medicines;
 
-  TimezonBoxModel( { this.timezoneId,  this.timezoneTitle , this.medicines= const []});
+  TimezoneBoxModel(
+      {this.timezoneId, this.timezoneTitle, this.medicines = const []});
 
-
-  TimezonBoxModel copyWith({
+  TimezoneBoxModel copyWith({
     String? timezoneId,
     String? timezoneTitle,
     List<MedicineItemModel>? medicines,
   }) {
-    return TimezonBoxModel(
+    return TimezoneBoxModel(
       timezoneId: timezoneId ?? this.timezoneId,
       timezoneTitle: timezoneTitle ?? this.timezoneTitle,
       medicines: medicines ?? this.medicines,
@@ -45,18 +45,19 @@ class TimezonBoxModel{
   }
 
   Map<String, dynamic> toJson() => {
-    'timezone_id': timezoneId,
-    'medicines': medicines?.map((item) => item.toJson()).toList(),
-  };
+        'timezone_id': timezoneId,
+        'medicines': medicines?.map((item) => item.toJson()).toList(),
+      };
 }
 
-class TimezoneNotifier extends StateNotifier<List<TimezonBoxModel>> {
+class TimezoneNotifier extends StateNotifier<List<TimezoneBoxModel>> {
   TimezoneNotifier() : super([]);
 
 // 새로운 타임존을 추가
-  void addTimezone(TimezonBoxModel newTimezone) {
+  void addTimezone(TimezoneBoxModel newTimezone) {
     // 타임존 ID가 이미 존재하는지 확인
-    final exists = state.any((timezone) => timezone.timezoneId == newTimezone.timezoneId);
+    final exists =
+        state.any((timezone) => timezone.timezoneId == newTimezone.timezoneId);
 
     if (!exists) {
       // 존재하지 않는 경우, 새 타임존 추가
@@ -76,7 +77,9 @@ class TimezoneNotifier extends StateNotifier<List<TimezonBoxModel>> {
     }
   }
 
-
+  void clearAndUpdateTimezone(List<TimezoneBoxModel> newTimezone) {
+    state = newTimezone;
+  }
 
 // 특정 timezone에 MedicineItem로 업데이트하는 메소드
   void addMedicineItem(String timezoneId, MedicineItemModel newItem) {
@@ -84,11 +87,10 @@ class TimezoneNotifier extends StateNotifier<List<TimezonBoxModel>> {
     print(state);
     state = state.map((timezone) {
       if (timezone.timezoneId == timezoneId) {
-        return TimezonBoxModel(
+        return TimezoneBoxModel(
             timezoneId: timezone.timezoneId,
             timezoneTitle: timezone.timezoneTitle,
-            medicines: [...timezone.medicines!, newItem]
-        );
+            medicines: [...timezone.medicines!, newItem]);
       }
       return timezone;
     }).toList();
@@ -101,14 +103,21 @@ class TimezoneNotifier extends StateNotifier<List<TimezonBoxModel>> {
   void updateMedicineItem(String timezoneId, List<MedicineItemModel> newItem) {
     state = state.map((timezone) {
       if (timezone.timezoneId == timezoneId) {
-        return TimezonBoxModel(
+        return TimezoneBoxModel(
             timezoneId: timezone.timezoneId,
             timezoneTitle: timezone.timezoneTitle,
             medicines: newItem
-        );
+                .map((item) => item.copyWith(
+                      medicineId: item.medicineId,
+                      name: item.name,
+                      takeAmount: item.takeAmount,
+                      takeUnit: item.takeUnit,
+                      memo: item.memo,
+                      selected: item.selected,
+                    ))
+                .toList());
       }
       return timezone;
     }).toList();
   }
-
 }

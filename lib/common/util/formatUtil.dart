@@ -1,6 +1,8 @@
 
 import 'dart:ffi';
 
+import 'package:intl/intl.dart';
+
 class FormatUtil {
   static String doubleToString(double val) {
     if (val == val.toInt()) {
@@ -12,12 +14,15 @@ class FormatUtil {
   }
 
   static String getTimeFromDateTime(DateTime dt) {
-    print(dt);
+    print('##########${dt}');
+    if(dt.isAtSameMomentAs(DateTime(0))) return '';
+
     return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
   static String parseTimeToAMPM(DateTime dt) {
     if (dt == null) return '';
+    if (dt.isAtSameMomentAs(DateTime(0))) return '';
 
     return dt.hour >= 12 ? "PM" : "AM";
   }
@@ -39,5 +44,26 @@ class FormatUtil {
     }
 
     return hour >= 12 ? "PM" : "AM";
+  }
+
+  static String getWeekdayName(int weekdayNumber) {
+    List<String> weekdays = [
+      "월", "화", "수", "목", "금", "토", "일"
+    ];
+
+    return weekdays[weekdayNumber - 1];
+  }
+
+  static List<String> getDatesBetween(DateTime startAt_dt, DateTime finished_dt) {
+    List<String> dateList = [];
+
+    DateTime currentDate = startAt_dt;
+
+    while (currentDate.isBefore(finished_dt) || currentDate.isAtSameMomentAs(finished_dt)) {
+      dateList.add(DateFormat('yyyy-MM-dd').format(currentDate));
+      currentDate = currentDate.add(Duration(days: 1));
+    }
+
+    return dateList;
   }
 }

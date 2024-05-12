@@ -4,10 +4,12 @@ import 'package:care_management/common/component/dosage_scedule_button.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/model/timezone_box_model.dart';
 import 'package:care_management/common/model/timezone_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/dosage_input_screen.dart';
 import 'package:care_management/screen/search/medicine_search_dialog.dart';
 import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
+import 'package:care_management/screen/timezone_manage/timezone_manage_input_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,15 +37,25 @@ class _PrescriptionBagDosageSceduleScreenState
     );
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    print('----prescriptionbag dosage schedule -dispose------');
+
+    super.dispose();
+  }
+
 
   void getTimezonList() async {
     final dio = ref.watch(dioProvider);
+
 
     try {
       final resp = await dio.get('${apiIp}/timezone',
           options: Options(headers: {'accessToken': 'true'}));
 
       setState(() {
+/*
         timezoneModel = resp.data['data']
             .map<TimezoneModel>((e) => TimezoneModel(
             id: e['id'],
@@ -51,9 +63,25 @@ class _PrescriptionBagDosageSceduleScreenState
             hour: e['hour'],
             midday: e['midday'],
             minute: e['minute'],
-            controller: TextEditingController(),
+            controller: null,
             title: '${e['name']} (${e['hour']}:${e['minute']})'))
             .toList();
+*/
+
+        for(Map e in resp.data['data']){
+            timezoneModel.add(TimezoneModel(
+                id: e['id'],
+                name: e['name'],
+                hour: e['hour'],
+                midday: e['midday'],
+                minute: e['minute'],
+                controller: null,
+                title: '${e['name']} (${e['hour']}:${e['minute']})'));
+
+          ref.read(timezoneProvider.notifier).addTimezone(
+              TimezoneBoxModel(timezoneId:e['id'], timezoneTitle: '${e['name']} (${e['hour']}:${e['minute']})'));
+        }
+
 
       });
 
@@ -67,6 +95,8 @@ class _PrescriptionBagDosageSceduleScreenState
 
   @override
   Widget build(BuildContext context) {
+    print('----prescriptionbag dosage schedule -build------');
+
     return ProviderScope(
         child: MainLayout(
       appBartitle: '복약 계획',
@@ -78,7 +108,10 @@ class _PrescriptionBagDosageSceduleScreenState
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => TimezoneInputScreen()));
+                  },
                   child: Text(
                     '+ 복약 시간대 추가',
                     style: TextStyle(

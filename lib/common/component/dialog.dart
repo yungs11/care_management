@@ -47,4 +47,21 @@ class CustomDialog {
           context, e.response!.data['message']);
     }
   }
+
+  static errorExceptionAlert(BuildContext context,Object e){
+    print('####');
+    print(e);
+    //print(e.response);
+    //print(e.response!.data['errors']);
+   /* if (e.data['errors'].isNotEmpty) {
+      return CustomDialog.showAlert(
+          context,
+          e.response!.data['errors'].values
+              .toString()
+              .replaceAll(RegExp(r'\(|\)'), ''));
+    } else {
+      return CustomDialog.showAlert(
+          context, e.response!.data['message']);
+    }*/
+  }
 }

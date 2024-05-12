@@ -8,7 +8,7 @@ class TimezoneModel {
   final String minute;
   final String title;
 //  final bool useAlert;
-  final TextEditingController controller;
+  TextEditingController? controller;
 
 
   TimezoneModel({
@@ -18,6 +18,6 @@ class TimezoneModel {
     required this.midday,
     required this.minute,
     required this.title,
-    required this.controller,
+    this.controller,
   });
 }

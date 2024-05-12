@@ -16,10 +16,20 @@ class DosageInputScreen extends StatefulWidget {
 }
 
 class _DosageInputScreenState extends State<DosageInputScreen> {
-  int _selectedDose = 1; // 초기 복용량 값
+  double _selectedDose = 1.0; // 초기 복용량 값
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    print('----dosage input screen dispose------');
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    print('----DosageInputScreen -build------');
+
     return MainLayout(
       appBartitle: '약봉투 등록',
       addPadding: true,
@@ -42,7 +52,7 @@ class _DosageInputScreenState extends State<DosageInputScreen> {
               SizedBox(
                 width: 70.0,
                 height: 60.0,
-                child: DropdownButton<int>(
+                child: DropdownButton<double>(
                   isExpanded: true,
                   icon: Image(
                     image: AssetImage("asset/icon/bottom_arrow.png"),
@@ -52,14 +62,14 @@ class _DosageInputScreenState extends State<DosageInputScreen> {
                     height: 1,
                     color: Color(0x67000000),
                   ),
-                  onChanged: (int? newValue) {
+                  onChanged: (double? newValue) {
                     setState(() {
                       _selectedDose = newValue!;
                     });
                   },
-                  items: <int>[1, 2, 3, 4, 5]
-                      .map<DropdownMenuItem<int>>((int value) {
-                    return DropdownMenuItem<int>(
+                  items: <double>[1, 2, 3, 4, 5]
+                      .map<DropdownMenuItem<double>>((double value) {
+                    return DropdownMenuItem<double>(
                       value: value,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -1,49 +1,81 @@
 import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/timezone_box_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 final prescriptionProvider =
     StateNotifierProvider<PrescriptionNotifier, PrescriptionModel>(
         (ref) => PrescriptionNotifier());
 
 class PrescriptionModel {
+  final String? prescriptionId;
   final String? prescriptionName;
   final String? hospitalName;
-  final String? startedAt;
+  final DateTime? startedAt;
+  final DateTime? finishedAt;
+  Color? markerColor;
   final int? takeDays;
-//final DateTime finishedAt;
-  final List<TimezonBoxModel>? items;
+  final List<TimezoneBoxModel>? items;
   //final String? memo;
 
   PrescriptionModel({
+    this.prescriptionId,
     this.prescriptionName,
     this.hospitalName,
     this.startedAt,
+    this.finishedAt,
+    this.markerColor,
     this.takeDays,
     this.items,
     //this.memo,
   });
 
   PrescriptionModel copyWith({
+    String? prescriptionId,
     String? prescriptionName,
     String? hospitalName,
-    String? startedAt,
+    DateTime? startedAt,
+    DateTime? finishedAt,
+    Color? markerColor,
     int? takeDays,
-    List<TimezonBoxModel>? items,
+    List<TimezoneBoxModel>? items,
   }) {
     return PrescriptionModel(
+      prescriptionId: prescriptionId ?? this.prescriptionId,
       prescriptionName: prescriptionName ?? this.prescriptionName,
       hospitalName: hospitalName ?? this.hospitalName,
       startedAt: startedAt ?? this.startedAt,
+      finishedAt : finishedAt ?? this.finishedAt,
+      markerColor: markerColor ?? this.markerColor,
       takeDays: takeDays ?? this.takeDays,
       items: items ?? this.items,
     );
   }
 
+  /**
+   * 처방전 목록 조회해올 때
+   */
+  factory PrescriptionModel.fromJson({required Map<String, dynamic> json}) {
+    return PrescriptionModel(
+      prescriptionId: json['id'] ?? '',
+      prescriptionName: json['name'] ?? '',
+      hospitalName: json['hospital'] ?? '',
+      startedAt: json['started_at'] != null ? DateTime.parse(json['started_at']) : null,
+      finishedAt:json['finished_at'] != null ? DateTime.parse(json['finished_at']) : null,
+      takeDays: json['take_days'].toInt(),
+
+    );
+  }
+
+  /**
+   * 처방전 등록할 때
+   */
   Map<String, dynamic> toJson() => {
         'name': prescriptionName,
         'hospital': hospitalName,
-        'started_at': startedAt,
+        'started_at': DateFormat('yyyy-MM-dd').format(startedAt!),
+        //'finished_at' : finishedAt,
         'take_days': takeDays,
         //'memo' :
         'timezones': items?.map((item) => item.toJson()).toList(),
@@ -53,7 +85,7 @@ class PrescriptionModel {
 class PrescriptionNotifier extends StateNotifier<PrescriptionModel> {
   PrescriptionNotifier() : super(PrescriptionModel());
 
-  void initPrescription(){
+  void initPrescription() {
     state = PrescriptionModel();
   }
 
@@ -66,15 +98,43 @@ class PrescriptionNotifier extends StateNotifier<PrescriptionModel> {
   }
 
   void updateStartedAt(String date) {
-    state = state.copyWith(startedAt: date);
+    state = state.copyWith(startedAt: DateTime.parse(date));
   }
 
   void updateTakDays(int days) {
     state = state.copyWith(takeDays: days);
   }
 
-  void updateItems(List<TimezonBoxModel> medicineList) {
-    state = state.copyWith(items: medicineList);
+
+  void updateItems(List<TimezoneBoxModel> timezoneList) {
+    state = state.copyWith(items: timezoneList);
+  }
+
+  void updateFilteredItems(List<TimezoneBoxModel> timezoneList) {
+    state = state.copyWith(items: filteredTimezoneList(timezoneList));
+  }
+
+// 함수 정의: 약 복용 시간대와 그 시간대의 약들이 'selected' 상태인 것만 필터링하여 반환
+  List<TimezoneBoxModel> filteredTimezoneList(
+    List<TimezoneBoxModel> originalTimezone,
+  ) {
+    List<TimezoneBoxModel> filteredTimezoneBoxes =
+        originalTimezone.map((timezoneBox) {
+              List<MedicineItemModel> selectedMedicines = timezoneBox.medicines
+                      ?.where((medicine) => medicine.selected ?? false)
+                      .toList() ??
+                  [];
+
+              return timezoneBox.copyWith(medicines: selectedMedicines);
+            }).toList() ??
+            [];
+
+    // 약이 비어져 있지 않은 시간대만 선택
+    filteredTimezoneBoxes = filteredTimezoneBoxes
+        .where((box) => box.medicines?.isNotEmpty ?? false)
+        .toList();
+
+    return filteredTimezoneBoxes;
   }
 }
 

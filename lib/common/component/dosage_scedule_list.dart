@@ -1,22 +1,25 @@
 import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/prescription_bag_dosage_schedule_result_screen.dart';
 import 'package:flutter/material.dart';
 
 class DosageScheduleList extends StatefulWidget {
-  final String scheduleTitle;
+  final String timezoneTitle;
   final VoidCallback onPressed;
   final bool isBoxSelected;
   final bool isCopyMode;
+  final String timezoneId;
   final List<MedicineItemModel> medicines;
 
   const DosageScheduleList({
     super.key,
-    required this.scheduleTitle,
+    required this.timezoneTitle,
     required this.onPressed,
     required this.isBoxSelected,
     required this.isCopyMode,
     required this.medicines,
+    required this.timezoneId,
   });
 
   @override
@@ -30,13 +33,14 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
       Align(
         alignment: FractionalOffset.centerLeft, //좌측상단 기준 가운데 왼쪽 정렬
         child: Text(
-          widget.scheduleTitle,
+          widget.timezoneTitle,
           style: TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 16.0,
           ),
         ),
       ),
+      /* 전체선택 기능 제거
       widget.isCopyMode
           ? Align(
               alignment: FractionalOffset.centerLeft,
@@ -49,9 +53,10 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                     ),
                   )),
             )
-          : SizedBox(
-              height: 10.0,
-            ),
+          : */
+      SizedBox(
+        height: 10.0,
+      ),
       Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -68,7 +73,7 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                 child: Column(
                   children: [
                     SizedBox(
-                     height: widget.medicines.length * 40.0,
+                      height: widget.medicines.length * 40.0,
                       child: ListView.builder(
                           itemCount: widget.medicines.length,
                           itemBuilder: (context, index) {
@@ -117,9 +122,9 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                             );
                           }),
                     ),
-                      SizedBox(
-                        height: 10.0,
-                      ),
+                    SizedBox(
+                      height: 10.0,
+                    ),
                     if (!widget.isCopyMode)
                       Row(
                         children: [
@@ -130,8 +135,32 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                                 style: TextStyle(color: Colors.black),
                               ),
                               onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (_) => MedicineSearchScreen(timezoneId: '11', timezoneTitle: '아침 (08:00)',)));
+                                /*  Navigator.of(context).popUntil(
+                                  (route) =>
+                                      route.settings.name ==
+                                      'prescription-result', // 'prescription-result' 화면만 남기기
+                                );
+*/
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => MedicineSearchScreen(
+                                            timezoneId: widget.timezoneId,
+                                            timezoneTitle: widget.timezoneTitle,
+                                          )),
+                                );
+
+                                /* Navigator.of(context).pushNamedAndRemoveUntil(
+                                  'prescription-result',
+                                      (Route<dynamic> route) => route.settings.name == 'prescription-result'
+                                );
+
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => MedicineSearchScreen(
+                                        timezoneId: widget.timezoneId,
+                                        timezoneTitle: widget.timezoneTitle,
+                                      )),
+                                );*/
                               },
                             ),
                           ),
@@ -148,7 +177,13 @@ class _DosageScheduleListState extends State<DosageScheduleList> {
                       widget.isBoxSelected ? PRIMARY_COLOR : NON_SELECTED_COLOR,
                 ),
                 child: Icon(Icons.add, size: 24),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => MedicineSearchScreen(
+                            timezoneId: widget.timezoneId,
+                            timezoneTitle: widget.timezoneTitle,
+                          )));
+                },
               ),
       ),
     ]);

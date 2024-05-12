@@ -165,7 +165,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     );
     if (picked != null && picked != DateTime.now())
       setState(() {
-        widget.dateController.text = "${picked.toLocal()}".split(' ')[0];
+        widget.dateController.text = "${picked.toUtc()}".split(' ')[0];
       });
   }
 

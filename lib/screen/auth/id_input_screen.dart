@@ -3,9 +3,7 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/screen/DoseLog/dose_log_screen.dart';
-import 'package:care_management/screen/medication_time_manage/med_time_manage_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
-import 'package:care_management/screen/medication_time_manage/med_time_manage_input_screen.dart';
 import 'package:care_management/screen/search/calendar_screen.dart';
 import 'package:care_management/screen/auth/login_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_dosage_schedule_screen.dart';
@@ -45,7 +43,7 @@ class _IdInputScreenState extends State<IdInputScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
+    /*final screens = [
       ScreenModel(builder: (_) => const RenewPasswordScreen(), name: '비밀번호변경'),
       ScreenModel(
           builder: (_) => SignUpScreen(
@@ -65,13 +63,7 @@ class _IdInputScreenState extends State<IdInputScreen> {
                 selectedDate: '2023년 12월 29일 (금)',
               ),
           name: '복용 내역 페이지'),
-      ScreenModel(
-          builder: (_) => PrescriptionHistoryScreen(
-                selectedDate: DateTime(2023, 12, 29),
-              ),
-          name: '처방 내역 페이지'),
-      ScreenModel(builder: (_) => MedTimeManageScreen(), name: '복약 시간대 관리 페이지'),
-    ];
+    ];*/
 
     return MainLayout(
       appBartitle: '',
@@ -113,25 +105,28 @@ class _IdInputScreenState extends State<IdInputScreen> {
                       'email': textController.text,
                     });
 
-                    //가입이 가능한 상태(중복 이메일 없음)
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => SignUpScreen(
-                              userId: textController.text,
-                            )));
+                    //print(resp.data['code']);
+                    if (resp.data['code'] == 1100) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => LoginScreen(
+                            userId: textController.text,
+                          )));
+                    }else if(resp.data['code'] == 1120 || resp.data['code'] == 1110 ){
+
+                      //가입이 가능한 상태(중복 이메일 없음)
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => SignUpScreen(
+                            userId: textController.text,
+                          )));
+
+                    }
                   } on DioException catch (e) {
                     print('----------------');
                     print(e.response);
                     // 가입이 불가능한 상태(중복 이메일이 있음 -> 로그인페이지로 이동)
-                    if (e.response!.data['code'] == 500) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => LoginScreen(
-                                userId: textController.text,
-                              )));
-                    }else{
                       // 500 아닌 경우 오류 메시지
                       return CustomDialog.showAlert(
                           context, e.response!.data['message']);
-                    }
 
 
                   } catch (e) {
@@ -139,7 +134,7 @@ class _IdInputScreenState extends State<IdInputScreen> {
                   }
                 },
                 buttonText: '확인'),
-            Column(
+           /* Column(
                 children: screens
                     .map((screen) => ElevatedButton(
                           onPressed: () {
@@ -148,7 +143,7 @@ class _IdInputScreenState extends State<IdInputScreen> {
                           },
                           child: Text(screen.name),
                         ))
-                    .toList()),
+                    .toList()),*/
           ],
         ),
       ),

@@ -7,16 +7,11 @@ import 'package:intl/intl.dart';
 import '../model/medication_schedule_box_model.dart';
 
 class LogCardList extends StatefulWidget {
-  final String title;
-  DateTime takingTime;
-  final List<TakingMedicineItem> medicineList;
-  bool takeYN = false;
+  final MedicationScheduleBoxModel timezoneList;
 
   LogCardList(
       {super.key,
-      required this.title,
-      required this.takingTime,
-      required this.medicineList});
+      required this.timezoneList});
 
   @override
   State<LogCardList> createState() => _LogCardListState();
@@ -35,8 +30,8 @@ class _LogCardListState extends State<LogCardList> {
   Widget renderExpansionCard() {
     return ExpansionTile(
       title:
-          renderTitleTakingTiming(widget.title, widget.takingTime.toString()),
-      initiallyExpanded: false,
+          renderTitleTakingTiming(widget.timezoneList.timezoneTitle!, widget.timezoneList.takeDateTime!.toString()),
+      initiallyExpanded: true,
       children: <Widget>[
         /*  const Divider(
           height: 3,
@@ -63,7 +58,7 @@ class _LogCardListState extends State<LogCardList> {
                           fontWeight: FontWeight.w500,
                           fontSize: 12.0))),
             ],
-            rows: widget.medicineList.map((e) => renderPillItem(e)).toList())
+            rows: widget.timezoneList.pills!.map((e) => renderPillItem(e)).toList())
       ],
     );
   }
@@ -74,7 +69,7 @@ class _LogCardListState extends State<LogCardList> {
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Expanded(
             flex: 1,
-            child: widget.takeYN
+            child: widget.timezoneList.takeStatus!
                 ? Icon(
                     Icons.circle_outlined,
                     color: PRIMARY_COLOR,
@@ -87,7 +82,7 @@ class _LogCardListState extends State<LogCardList> {
                   )),
         Expanded(
           flex: 2,
-          child: Text(widget.title,
+          child: Text(widget.timezoneList.timezoneTitle!,
               style:
                   const TextStyle(fontWeight: FontWeight.w500, fontSize: 15.0)),
         ),
@@ -95,14 +90,14 @@ class _LogCardListState extends State<LogCardList> {
           flex: 1,
           child: Row(
             children: [
-              Text(FormatUtil.getTimeFromDateTime(widget.takingTime),
+              Text(FormatUtil.getTimeFromDateTime(widget.timezoneList.takeDateTime!),
                   style: const TextStyle(
                       fontWeight: FontWeight.w400, fontSize: 12.0)),
               const SizedBox(
                 width: 10.0,
               ),
               Text(
-                FormatUtil.parseTimeToAMPM(widget.takingTime),
+                FormatUtil.parseTimeToAMPM(widget.timezoneList.takeDateTime!),
                 style: const TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
@@ -126,14 +121,14 @@ class _LogCardListState extends State<LogCardList> {
         DataCell(Container(width: 30.0, child: renderPillTakingYNIcon(pill))),
         DataCell(Container(width: 120.0, child: renderPillName(pill))),
         DataCell(Container(width: 80.0, child: renderPillTakingTime(pill))),
-        DataCell(Container(width: 20.0, child: Text('1개'))),
-        DataCell(Container(width: 40.0, child: Text('10일분'))),
+        DataCell(Container(width: 30.0, child: Text('${pill.takeAmount.toString()}개', style: TextStyle(fontSize: 12.0),))),
+        DataCell(Container(width: 40.0, child: Text('${pill.remainAmount.toString()}일분', style: TextStyle(fontSize: 12.0),))),
       ],
     );
   }
 
   Widget renderPillTakingYNIcon(pill) {
-    return pill.takingYN
+    return pill.takeStatus
         ? Icon(
             Icons.circle_outlined,
             color: PRIMARY_COLOR,
@@ -147,7 +142,7 @@ class _LogCardListState extends State<LogCardList> {
   }
 
   Widget renderPillName(pill) {
-    return Text(pill.name,
+    return Text(pill.pillName,
         style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0));
   }
 

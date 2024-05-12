@@ -20,7 +20,16 @@ class _MedicationNoteScreen extends ConsumerState<MedicationNoteScreen> {
   final TextEditingController _noteController = TextEditingController();
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    print('----note screen dispose------');
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('--MedicationNoteScreen build-----');
+
     return MainLayout(
       appBartitle: '약봉투 등록',
       addPadding: true,
@@ -66,7 +75,11 @@ class _MedicationNoteScreen extends ConsumerState<MedicationNoteScreen> {
 
                Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) =>
-                        PrescriptionBagDosageSceduleResultScreen()));
+                        PrescriptionBagDosageSceduleResultScreen(),
+                 settings: RouteSettings(name: 'prescription-result'),
+               ));
+
+
               },
               buttonText: '등록')
         ],

@@ -6,20 +6,20 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/timezone_model.dart';
-import 'package:care_management/screen/medication_time_manage/med_time_manage_input_screen.dart';
+import 'package:care_management/screen/timezone_manage/timezone_manage_input_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MedTimeManageScreen extends ConsumerStatefulWidget {
-  MedTimeManageScreen({super.key});
+class TimezoneScreen extends ConsumerStatefulWidget {
+  TimezoneScreen({super.key});
 
   @override
-  ConsumerState<MedTimeManageScreen> createState() =>
+  ConsumerState<TimezoneScreen> createState() =>
       _MedTimeManageScreenState();
 }
 
-class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
+class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
   List<TimezoneModel> timezoneModel = [];
   List<String> _timeList = [];
 
@@ -44,7 +44,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
   void dispose() {
     // TODO: implement dispose
     for (TimezoneModel medtime in timezoneModel) {
-      medtime.controller.dispose();
+      medtime.controller!.dispose();
     }
 
     super.dispose();
@@ -70,7 +70,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
             .toList();
 
         for (TimezoneModel medtime in timezoneModel) {
-          medtime.controller.text = '${medtime.title}';
+          medtime.controller!.text = '${medtime.title}';
         }
       });
 
@@ -136,7 +136,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
                               IconButton(
                                 onPressed: () {
                                   Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (_) => MedTimeManageInputScreen(
+                                      builder: (_) => TimezoneInputScreen(
                                           editingMode: true,
                                           editingMedTimeData: medTime)));
                                 },
@@ -188,7 +188,7 @@ class _MedTimeManageScreenState extends ConsumerState<MedTimeManageScreen> {
     return FloatingActionButton(
       onPressed: () {
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const MedTimeManageInputScreen()));
+            builder: (_) => const TimezoneInputScreen()));
       },
       backgroundColor: PRIMARY_COLOR,
       foregroundColor: Colors.white,

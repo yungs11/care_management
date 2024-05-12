@@ -33,8 +33,10 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
   ];
   final TextEditingController _controller = TextEditingController();
 
+
   @override
   void dispose() {
+    print('--medicinesearch dispose-----');
     // TODO: implement dispose
     _controller.dispose();
     super.dispose();
@@ -42,6 +44,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('--medicinesearch build-----');
 
     return Scaffold(
       appBar: AppBar(
@@ -122,6 +125,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
                       'accessToken': 'true',
                     }));
 
+                  print( resp);
 
                 setState(() {
                   final List<MedicineInfoModel> medicines = resp.data['data']
@@ -194,7 +198,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
            final medicineItem = MedicineItemModel(medicineId: selectedResult['medicineId'], name: selectedResult['name'], selected: true);
 
 
-           ref.read(timezoneProvider.notifier).addTimezone(TimezonBoxModel(timezoneId: widget.timezoneId, timezoneTitle: widget.timezoneTitle));
+         //  ref.read(timezoneProvider.notifier).addTimezone(TimezonBoxModel(timezoneId: widget.timezoneId, timezoneTitle: widget.timezoneTitle));
 
             Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => DosageInputScreen(medicineItem: medicineItem, timezoneId: widget.timezoneId,)));

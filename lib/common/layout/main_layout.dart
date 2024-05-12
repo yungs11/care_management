@@ -6,13 +6,13 @@ import 'package:care_management/screen/user_main_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainLayout extends StatefulWidget {
-  final String appBartitle;
+  String appBartitle;
    Widget body;
    Widget? floatingActionButton;
   bool addPadding;
   MainLayout({
     super.key,
-    required this.appBartitle,
+    this.appBartitle = '',
     required this.body,
     this.floatingActionButton = null,
     this.addPadding = false,
@@ -23,25 +23,16 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  List<Widget>? _cachedScreens;
-
-  List _pages = [];
 
   @override
   void initState() {
     super.initState();
     // 각 화면(위젯)의 인스턴스를 초기화하고 캐싱
-    _cachedScreens = TABS.map((tab) => tab.screen).toList();
-    _pages = [
-      {'screen' : PrescriptionBagInputScreen(), 'addPadding': true},
-      {'screen': UserMainScreen(), 'addPadding': false},
-      {'screen': PrescriptionHistoryScreen(selectedDate: DateTime(2023, 12, 29)), 'addPadding': false,},
-    ];
+
   }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.addPadding);
 
     return Scaffold(
         endDrawer: MainDrawer(),
@@ -77,8 +68,9 @@ class _MainLayoutState extends State<MainLayout> {
       onTap: (value) {
         setState(() {
           _tabIndex = value;
-          widget.body = _pages[_tabIndex]['screen'];
-          widget.addPadding = _pages[_tabIndex]['addPadding'];
+          widget.body = TABS![_tabIndex].screen;
+          widget.appBartitle = TABS![_tabIndex].appBartitle;
+          widget.addPadding = TABS![_tabIndex].addPadding;
           widget.floatingActionButton = null;
         });
       },

@@ -37,7 +37,8 @@ class CustomInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options,
       RequestInterceptorHandler handler) async {
-    print('REQUEST [${options.uri}');
+    print('REQUEST [${options.path}] [${options.uri}]');
+    print(' ${options.data}');
     print(['${options.headers}', options.headers['accessToken'] == 'true']);
     print(['${options.headers}', options.headers['refreshToken'] == 'true']);
 
@@ -89,18 +90,18 @@ class CustomInterceptor extends Interceptor {
       return handler.reject(err); //에러 발생
     }
 
-    final isStatus401 = err.response?.statusCode == 401 ;
+    final isStatus406 = err.response?.statusCode == 1001 ;
     final isPathRefresh = err.requestOptions.path ==
         '/auth/token'; // 토큰 새로 발급받는 api
 
-    if (isStatus401 && !isPathRefresh) { //토큰 만료이나, 새로 토큰 발급 받는 url이 아니라면
+    if (isStatus406 && !isPathRefresh) { //토큰 만료이나, 새로 토큰 발급 받는 url이 아니라면
       print('리프레시 토큰으로 억세스 토큰 재발급 로직 시작');
       
       final dio = Dio();
 
       try {
         final resp = await dio.post(
-          '${apiIp}/auth/token',
+          '${apiIp}/auth/refresh',
           options: Options(
             headers: {
               'authorization': 'Bearer $refreshToken',
@@ -114,6 +115,7 @@ class CustomInterceptor extends Interceptor {
 
         options.headers.addAll({
           'authorization': 'Bearer $accessToken',
+          'RefreshToken': 'Bearer $refreshToken'
         });
 
         await storage.write(key: ACCESS_TOKEN_KEY, value: accessToken);
@@ -156,11 +158,10 @@ class CustomInterceptor extends Interceptor {
           print(navigatorKeyProvider);
 
           try{
-            print('왜 안갈까?');
-            Provider((ref) {
-              print(ref
-                  .watch(navigatorKeyProvider)
-                  .currentState);
+            print('왜 안갈까?1111 ');
+            Provider(
+                    (ref) {
+              print('모르겠다 ${ref} ${ref.watch(navigatorKeyProvider).currentState}');
 
               ref
                   .watch(navigatorKeyProvider)
@@ -170,10 +171,11 @@ class CustomInterceptor extends Interceptor {
                       (route) => false);
 
             });
-            //return handler.reject(err); //
+            print(2222);
+            return handler.reject(err); //
           }catch(e){
             Provider((ref) {
-              print('왜 안갈까?');
+              print('왜 안갈까?222222');
               print(ref);
 
               ref
@@ -190,11 +192,14 @@ class CustomInterceptor extends Interceptor {
 
         }
       }else{
+        print('11111111');
         //return handler.reject(err); //에러 발생
        // return super.onError(err, handler);
       }
 
 
+    }else{
+      return handler.reject(err);
     }
 
 

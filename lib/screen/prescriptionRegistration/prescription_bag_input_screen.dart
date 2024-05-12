@@ -25,12 +25,13 @@ class _PrescriptionBagInputScreenState
   void dispose() {
     // TODO: implement dispose
     _prescriptionTitleController.dispose();
+    print('----prescriptionbag input -dispose------');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
+    print('----prescriptionbag input -build------');
 
 
     return Column(

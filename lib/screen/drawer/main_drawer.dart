@@ -7,12 +7,13 @@ import 'package:care_management/common/secure_storage/secure_storage.dart';
 import 'package:care_management/common/util/errorUtil.dart';
 import 'package:care_management/screen/doseLog/dose_log_screen.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
-import 'package:care_management/screen/medication_time_manage/med_time_manage_screen.dart';
+import 'package:care_management/screen/timezone_manage/timezone_manage_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class MainDrawer extends ConsumerStatefulWidget {
   const MainDrawer({super.key});
@@ -22,7 +23,6 @@ class MainDrawer extends ConsumerStatefulWidget {
 }
 
 class _MainDrawerState extends ConsumerState<MainDrawer> {
-
   String selectedMenu = "";
 
   @override
@@ -41,17 +41,16 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
       ScreenModel(
           builder: (_) => MainLayout(
                 appBartitle: '처방 내역',
-                body: PrescriptionHistoryScreen(
-                    selectedDate: DateTime(2023, 12, 29)),
+                body: PrescriptionHistoryScreen(selectedDate: DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc()),),
                 addPadding: false,
               ),
           name: '처방 내역'),
       ScreenModel(
           builder: (_) => DoseLogScreen(
-                selectedDate: '2023년 12월 29일 (금)',
+                selectedDay: DateTime.now().toUtc(),
               ),
           name: '복용 내용'),
-      ScreenModel(builder: (_) => MedTimeManageScreen(), name: '복약 시간대 관리'),
+      ScreenModel(builder: (_) => TimezoneScreen(), name: '복약 시간대 관리'),
     ];
 
     print(selectedMenu);
@@ -88,12 +87,11 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
           .toList(),
       Spacer(),
       ListTile(
-        onTap: () async{
-
-          try{
-            final resp = await dio.post('${apiIp}/auth/signout'
-                , options: Options(
-                  headers: {'accessToken':'true'},
+        onTap: () async {
+          try {
+            final resp = await dio.post('${apiIp}/auth/signout',
+                options: Options(
+                  headers: {'accessToken': 'true'},
                 ));
             print(resp);
 
@@ -101,9 +99,9 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
 
             Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => IdInputScreen()),
-                    (route) => false);
-          }on DioException catch(e){
-           CustomDialog.errorAlert(context, e);
+                (route) => false);
+          } on DioException catch (e) {
+            CustomDialog.errorAlert(context, e);
           }
         },
         title: Align(
