@@ -86,7 +86,7 @@ class CustomInterceptor extends Interceptor {
 
         });
       });
-      // 요청을 중단하고 결과를 리턴합니다.
+      //try catch문에 dioexception 반환
       return handler.reject(DioException(
         requestOptions: options,
         //error: 'Received invalid status code: ${response.statusCode}',
