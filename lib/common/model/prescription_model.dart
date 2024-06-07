@@ -1,12 +1,24 @@
 import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/timezone_box_model.dart';
+import 'package:care_management/common/util/formatUtil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+
 final prescriptionProvider =
     StateNotifierProvider<PrescriptionNotifier, PrescriptionModel>(
         (ref) => PrescriptionNotifier());
+
+List<Color> prescriptionColorsMap = [
+  Colors.red,
+  Colors.orange,
+  Colors.yellow,
+  Colors.green,
+  Colors.blue,
+  Colors.purple
+];
+int prescriptionIdx = 0;
 
 class PrescriptionModel {
   final String? prescriptionId;
@@ -14,9 +26,11 @@ class PrescriptionModel {
   final String? hospitalName;
   final DateTime? startedAt;
   final DateTime? finishedAt;
-  Color? markerColor;
   final int? takeDays;
   final List<TimezoneBoxModel>? items;
+  Color? markerColor;
+  int? markerTop;
+  List<String>? takeDatesList;
   //final String? memo;
 
   PrescriptionModel({
@@ -25,9 +39,11 @@ class PrescriptionModel {
     this.hospitalName,
     this.startedAt,
     this.finishedAt,
-    this.markerColor,
     this.takeDays,
     this.items,
+    this.markerColor,
+    this.markerTop,
+    this.takeDatesList,
     //this.memo,
   });
 
@@ -37,35 +53,54 @@ class PrescriptionModel {
     String? hospitalName,
     DateTime? startedAt,
     DateTime? finishedAt,
-    Color? markerColor,
     int? takeDays,
     List<TimezoneBoxModel>? items,
+    Color? markerColor,
+    int? markerTop,
+    List<String>? takeDatesList,
   }) {
     return PrescriptionModel(
       prescriptionId: prescriptionId ?? this.prescriptionId,
       prescriptionName: prescriptionName ?? this.prescriptionName,
       hospitalName: hospitalName ?? this.hospitalName,
       startedAt: startedAt ?? this.startedAt,
-      finishedAt : finishedAt ?? this.finishedAt,
-      markerColor: markerColor ?? this.markerColor,
+      finishedAt: finishedAt ?? this.finishedAt,
       takeDays: takeDays ?? this.takeDays,
       items: items ?? this.items,
+      markerColor: markerColor ?? this.markerColor,
+      markerTop: markerTop ?? this.markerTop,
+      takeDatesList: takeDatesList ?? this.takeDatesList,
     );
   }
+
+  static initialMarkerColor(){
+     prescriptionIdx = 0;
+  }
+
 
   /**
    * 처방전 목록 조회해올 때
    */
+
   factory PrescriptionModel.fromJson({required Map<String, dynamic> json}) {
+    print('prescriptionIdx >>> ${prescriptionIdx}');
     return PrescriptionModel(
       prescriptionId: json['id'] ?? '',
       prescriptionName: json['name'] ?? '',
       hospitalName: json['hospital'] ?? '',
-      startedAt: json['started_at'] != null ? DateTime.parse(json['started_at']) : null,
-      finishedAt:json['finished_at'] != null ? DateTime.parse(json['finished_at']) : null,
+      startedAt: json['started_at'] != null
+          ? DateTime.parse(json['started_at'])
+          : null,
+      finishedAt: json['finished_at'] != null
+          ? DateTime.parse(json['finished_at'])
+          : null,
       takeDays: json['take_days'].toInt(),
-
+      markerColor: prescriptionColorsMap[prescriptionIdx++ % prescriptionColorsMap.length],
+      markerTop: prescriptionIdx,
+      takeDatesList: FormatUtil.getDatesBetween(DateTime.parse(json['started_at']), DateTime.parse(json['finished_at'])),
     );
+
+
   }
 
   /**
@@ -104,7 +139,6 @@ class PrescriptionNotifier extends StateNotifier<PrescriptionModel> {
   void updateTakDays(int days) {
     state = state.copyWith(takeDays: days);
   }
-
 
   void updateItems(List<TimezoneBoxModel> timezoneList) {
     state = state.copyWith(items: timezoneList);

@@ -5,6 +5,7 @@ import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
+import 'package:care_management/screen/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,7 +19,10 @@ class MainCardList extends ConsumerStatefulWidget {
   final String? memo;
   final List<TakingMedicineItem> medicineList;
   bool take_status;
-  VoidCallback? onReloadRequest;
+  FutureProvider<List<MedicationScheduleBoxModel>>? onReloadRequest;
+  bool expandCard;
+
+
   MainCardList({
     super.key,
     required this.title,
@@ -29,6 +33,7 @@ class MainCardList extends ConsumerStatefulWidget {
     required this.medicineList,
     this.take_status = false,
     this.onReloadRequest,
+    this.expandCard = false,
   });
 
   @override
@@ -47,10 +52,23 @@ class _MainCardListState extends ConsumerState<MainCardList> {
     super.dispose();
   }
 
-  void _updatetakeAmount(TakingMedicineItem pill, double value) {
-    setState(() {
-      pill.controller!.text = FormatUtil.doubleToString(value);
-    });
+  void _updatetakeAmount(TakingMedicineItem pill, double value) async {
+    final dio = ref.watch(dioProvider);
+    try{
+      final resp = await dio.patch('${apiIp}/plan/item/takeamount',
+          options: Options(headers: {'accessToken': 'true'}),
+          data: {
+            'prescription_item_id': pill.prescriptionItemId,
+            'take_amount': value,
+          });
+
+      ref.refresh(widget.onReloadRequest!);
+
+    }on DioException catch(e){
+      CustomDialog.errorAlert(context, e);
+    }catch(e){
+      print(e);
+    }
   }
 
   @override
@@ -66,7 +84,7 @@ class _MainCardListState extends ConsumerState<MainCardList> {
     return ExpansionTile(
       title: renderTitleTakingTiming(
           widget.title, widget.timezoneId, widget.takingTime),
-      initiallyExpanded: true,
+      initiallyExpanded: widget.expandCard!,
       children: <Widget>[
         const Divider(
           height: 3,
@@ -76,8 +94,8 @@ class _MainCardListState extends ConsumerState<MainCardList> {
         MemoBox(
           memo: widget.memo!,
           timezoneId: widget.timezoneId,
-          onReloadRequest: widget.onReloadRequest!,
           selectedDay: widget.selectedDay,
+          onReloadRequest: widget.onReloadRequest,
         ),
       ],
     );
@@ -93,39 +111,31 @@ class _MainCardListState extends ConsumerState<MainCardList> {
           width: 70.0,
           child: IconButton(
               onPressed: () async {
+                final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                final formatedSelectedDay = DateFormat('yyyy-MM-dd').format(widget.selectedDay);
+
+                if (today != formatedSelectedDay) {
+                  CustomDialog.showAlert(context, '변경은 당일만 가능합니다.');
+                  return;
+                }
                 final dio = ref.watch(dioProvider);
 
                 try {
-                  await dio.post('${apiIp}/plan/take',
+                  final resp = await dio.post('${apiIp}/plan/take',
                       options: Options(headers: {'accessToken': 'true'}),
                       data: {
-                        'target_date':
-                            DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                        'target_date': today,
                         'timezone_id': timingId,
                       });
 
-                  widget.onReloadRequest!();
 
-                  /* setState(() {
-                    final now = DateTime.now().toLocal();
-                    widget.takeYN = !widget.takeYN;
-                    for (TakingMedicineItem medicine in widget.medicineList) {
-                      medicine.takeStatus = widget.takeYN;
-                    }
-
-                    if (widget.takeYN) {
-                      widget.takingTime = now;
-                    } else {
-                      widget.takingTime = DateTime(0);
-                    }
-
-                    for (TakingMedicineItem medicine in widget.medicineList) {
-                      medicine.takingTime = widget.takingTime;
-                    }
-                  });  */
+                  print(resp);
+                  ref.refresh(widget.onReloadRequest!);
                 } on DioException catch (e) {
                   CustomDialog.errorAlert(context, e);
-                } catch (e) {}
+                } catch (e) {
+                  print(e);
+                }
               },
               icon: Icon(
                 Icons.circle_outlined,
@@ -182,6 +192,14 @@ class _MainCardListState extends ConsumerState<MainCardList> {
       flex: 1,
       child: IconButton(
           onPressed: () async {
+            final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+            final formatedSelectedDay = DateFormat('yyyy-MM-dd').format(widget.selectedDay);
+
+            if (today != formatedSelectedDay) {
+              CustomDialog.showAlert(context, '변경은 당일만 가능합니다.');
+              return;
+            }
+
             final dio = ref.watch(dioProvider);
 
             try {
@@ -191,7 +209,10 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                     'pill_id': pill.takeHistoryItemId,
                   });
 
-              widget.onReloadRequest!();
+              print('take처리!!!!');
+              print(pill.takeHistoryItemId);
+
+              ref.refresh(widget.onReloadRequest!);
 
               /*
             setState(() {
@@ -266,9 +287,10 @@ class _MainCardListState extends ConsumerState<MainCardList> {
             child: IconButton(
               onPressed: () {
                 if (pill.takeAmount - 1 < 0) {
-                  pill.takeAmount = 0;
+                  pill.takeAmount = 0.0;
+                  return;
                 } else {
-                  pill.takeAmount -= 1;
+                  pill.takeAmount -= 1.0;
                 }
                 _updatetakeAmount(pill, pill.takeAmount);
               },
@@ -329,7 +351,7 @@ class MemoBox extends ConsumerStatefulWidget {
   final String memo;
   final DateTime selectedDay;
   final String timezoneId;
-  final VoidCallback onReloadRequest;
+  final FutureProvider<List<MedicationScheduleBoxModel>>? onReloadRequest;
 
   MemoBox({
     required this.memo,
@@ -350,7 +372,7 @@ class _MemoBoxState extends ConsumerState<MemoBox> {
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-    if(widget.memo != ''){
+    if (widget.memo != '') {
       _memoController.text = widget.memo;
     }
   }
@@ -361,7 +383,6 @@ class _MemoBoxState extends ConsumerState<MemoBox> {
     super.dispose();
     _memoController.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -428,40 +449,40 @@ class _MemoBoxState extends ConsumerState<MemoBox> {
                     ),
                   ),
                   onPressed: () async {
-                      final dio = ref.watch(dioProvider);
+                    final dio = ref.watch(dioProvider);
 
-                      try {
+                    try {
                       final resp = await dio.post('${apiIp}/plan/memo',
-                      options: Options(headers: {'accessToken': 'true'}),
-                      data: {
-                      'date': DateFormat('yyyy-MM-dd')
-                          .format(widget.selectedDay),
-                      'timezone_id': widget.timezoneId,
-                      'memo': _memoController.text,
-                      });
+                          options: Options(headers: {'accessToken': 'true'}),
+                          data: {
+                            'date': DateFormat('yyyy-MM-dd')
+                                .format(widget.selectedDay),
+                            'timezone_id': widget.timezoneId,
+                            'memo': _memoController.text,
+                          });
 
-                      print(DateFormat('yyyy-MM-dd').format(widget.selectedDay));
+                      print(
+                          DateFormat('yyyy-MM-dd').format(widget.selectedDay));
                       print(widget.timezoneId);
                       print(_memoController.text);
                       print(resp);
 
-
-                      widget.onReloadRequest!();
-                      } on DioException catch (e) {
+                      ref.refresh(widget.onReloadRequest!);
+                    } on DioException catch (e) {
                       CustomDialog.errorAlert(context, e);
-                      } catch (e) {
+                    } catch (e) {
                       CustomDialog.errorExceptionAlert(context, e);
-                      }/*
+                    } /*
                     setState(() {
                       showMemoPad = !showMemoPad;
                     });*/
                   },
                   child: Text(
-                      '저장',
-                      style: TextStyle(
-                        fontSize: 10, // 폰트 크기
-                      ),
+                    '저장',
+                    style: TextStyle(
+                      fontSize: 10, // 폰트 크기
                     ),
+                  ),
                 ),
               ],
             ),

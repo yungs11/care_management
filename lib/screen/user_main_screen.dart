@@ -14,6 +14,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+final selectedDayProvider =
+    StateProvider<DateTime>((ref) => DateTime.now().toUtc());
+
+final fetchDataProvider =
+    FutureProvider<List<MedicationScheduleBoxModel>>((ref) async {
+  final selectedDay = ref.watch(selectedDayProvider);
+  List<MedicationScheduleBoxModel> scheduleBoxModel = [];
+
+  final dio = ref.watch(dioProvider);
+
+  try {
+    final resp = await dio.get('${apiIp}/plan',
+        options: Options(headers: {'accessToken': 'true'}),
+        queryParameters: {
+          'date': DateFormat('yyyy-MM-dd').format(selectedDay)
+        });
+
+
+
+    scheduleBoxModel = resp.data['data']['plans']
+        .map<MedicationScheduleBoxModel>(
+            (e) => MedicationScheduleBoxModel.fromJson(json: e))
+        .toList();
+
+    ref
+        .read(MedicationScheduleBoxProvider.notifier)
+        .initMedicationBoxModel(scheduleBoxModel);
+
+    print(
+        '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
+  } on DioException catch (e) {
+    print('-------/plan dio error--------');
+    print(e);
+    //CustomDialog.errorAlert(context, e);
+  } catch (e) {
+    print('-------/plan error--------');
+    print(e);
+  }
+
+  return scheduleBoxModel;
+});
+
 class UserMainScreen extends ConsumerStatefulWidget {
   const UserMainScreen({super.key});
 
@@ -22,89 +64,40 @@ class UserMainScreen extends ConsumerStatefulWidget {
 }
 
 class _UserMainScreenState extends ConsumerState<UserMainScreen> {
-  DateTime selectedDay = DateTime.now().toUtc();
-  Future<List<MedicationScheduleBoxModel>>? dataFuture;
-
-  @override
-  void didChangeDependencies(){
-    super.didChangeDependencies();
-    dataFuture = fetchPlans();
-  }
-
-
-  Future<List<MedicationScheduleBoxModel>> fetchPlans() async {
-    List<MedicationScheduleBoxModel> scheduleBoxModel = [];
-
-    final dio = ref.watch(dioProvider);
-
-    try {
-      final resp = await dio.get('${apiIp}/plan',
-          options: Options(headers: {'accessToken': 'true'}),
-          queryParameters: {
-            'date': DateFormat('yyyy-MM-dd').format(selectedDay)
-          });
-      scheduleBoxModel = resp.data['data']['plans']
-          .map<MedicationScheduleBoxModel>(
-              (e) => MedicationScheduleBoxModel.fromJson(json: e))
-          .toList();
-
-      //     ref.read(MedicationScheduleBoxProvider.notifier).initMedicationBoxModel(scheduleBoxModel);
-
-      print(
-          '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
-    } on DioException catch (e) {
-      CustomDialog.errorAlert(context, e);
-    } catch (e) {
-      print(e);
-    }
-
-    return scheduleBoxModel;
-  }
-  void reloadData() {
-    setState(() {
-      dataFuture = fetchPlans();  // 데이터 재요청
-    });
-  }
-
-
-
   @override
   Widget build(BuildContext context) {
-    print('선택날짜 >>> ${selectedDay}');
+    final asyncValue = ref.watch(fetchDataProvider);
 
-    return FutureBuilder<List<MedicationScheduleBoxModel>>(
-        future: dataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator()); // 로딩 인디케이터 표시
-          } else if (snapshot.hasError) {
-            return Center(
-                child: Text('오류가 발생하였습니다: ${snapshot.error}')); // 오류 메시지 표시
-          } else {
-          return SafeArea(
-              child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                renderDateHeader(context),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: renderDateBox(),
-                ),
-                const SizedBox(
-                  height: 50.0,
-                ),
-                 Expanded(child: renderPillCard(snapshot.data!)),
-              ],
+    return SafeArea(
+        child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          renderDateHeader(context),
+          const SizedBox(
+            height: 10.0,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: renderDateBox(),
+          ),
+          const SizedBox(
+            height: 50.0,
+          ),
+          Expanded(
+            child: asyncValue.when(
+              data: (data) => renderPillCard(data),
+              loading: () => Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('오류가 발생하였습니다: $err')),
             ),
-          ));
-        }});
+          ),
+        ],
+      ),
+    ));
   }
 
   Widget renderDateHeader(BuildContext context) {
+    final selectedDay = ref.watch(selectedDayProvider);
     return Row(children: [
       Text(
         '${selectedDay.month}월, ${selectedDay.year}',
@@ -118,8 +111,10 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
       ),
       IconButton(
         onPressed: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => CalendarScreen(searchDay: selectedDay,)));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => CalendarScreen(
+                    searchDay: selectedDay,
+                  )));
         },
         icon: ImageIcon(AssetImage('asset/icon/calendar.png')),
       )
@@ -127,6 +122,7 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
   }
 
   List<Widget> renderDateBox() {
+    final selectedDay = ref.watch(selectedDayProvider);
     List dateBoxData = [
       {
         'date': selectedDay.subtract(Duration(days: 2)),
@@ -163,8 +159,7 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
         dateBoxData.length,
         (index) => InkWell(
               onTap: () {
-                  selectedDay = dateBoxData[index]['date'];
-                  reloadData();
+                ref.read(selectedDayProvider.notifier).state = dateBoxData[index]['date'];
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -195,7 +190,9 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
             ));
   }
 
-  Widget renderPillCard(List<MedicationScheduleBoxModel> takingTimezoneBoxList) {
+  Widget renderPillCard(
+      List<MedicationScheduleBoxModel> takingTimezoneBoxList) {
+    final selectedDay = ref.watch(selectedDayProvider);
     String yyyyMMDDSelectedDay = DateFormat('yyyyMMdd').format(selectedDay);
     String yyyyMMDDNowDay =
         DateFormat('yyyyMMdd').format(DateTime.now().toUtc());
@@ -213,29 +210,30 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
         Expanded(
           child: SingleChildScrollView(
             child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 1.0),
-              //border radius 주기위해!
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(4.0),
-                      bottomRight: Radius.circular(4.0))),
-              //color: lightColor,
-              child: Column(
+                margin: const EdgeInsets.symmetric(horizontal: 1.0),
+                //border radius 주기위해!
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(4.0),
+                        bottomRight: Radius.circular(4.0))),
+                //color: lightColor,
+                child: Column(
                   children: takingTimezoneBoxList
                       .map((takingTimezoneBox) => MainCardList(
-                    selectedDay : selectedDay,
-                          title: takingTimezoneBox.timezoneTitle!,
-                        take_status: takingTimezoneBox.takeStatus!,
-                        timezoneId: takingTimezoneBox.timezoneId!,
-                          memo: takingTimezoneBox.memo == null
-                              ? ''
-                              : takingTimezoneBox.memo,
-                          takingTime: takingTimezoneBox.takeDateTime ?? DateTime(0),
-                          medicineList: takingTimezoneBox.pills!,
-                          onReloadRequest: reloadData,))
+                            selectedDay: selectedDay,
+                            title: takingTimezoneBox.timezoneTitle!,
+                            take_status: takingTimezoneBox.takeStatus!,
+                            timezoneId: takingTimezoneBox.timezoneId!,
+                            memo: takingTimezoneBox.memo == null
+                                ? ''
+                                : takingTimezoneBox.memo,
+                            takingTime:
+                                takingTimezoneBox.takeDateTime ?? DateTime(0),
+                            medicineList: takingTimezoneBox.pills!,
+                            onReloadRequest: fetchDataProvider,
+                          ))
                       .toList(),
-                )
-            ),
+                )),
           ),
         )
       ],

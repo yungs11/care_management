@@ -22,6 +22,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     super.initState();
   }
 
+  void goLoginPage() {
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => IdInputScreen()),
+            (route) => false);
+  }
   @override
   Widget build(BuildContext context) {
     final storageProvier = ref.read(secureStorageProvider);
@@ -31,30 +36,44 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final refreshToken = await storageProvier.read(key: REFRESH_TOKEN_KEY);
       final accessToken = await storageProvier.read(key: ACCESS_TOKEN_KEY);
 
+      if(refreshToken == null){
+        goLoginPage();
+        return;
+      }
+
+
       try {
         final resp = await dio.get('${apiIp}/user/me',
             options: Options(headers: {
               'authorization': 'Bearer $refreshToken',
             }));
 
-        print(resp);
+        print('-----------111-');
+        print(resp.data['code']);
 
+        //토큰만료
+        if (resp.data['code'] == 1001) {
+          goLoginPage();
+          return;
+        }
 
 
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (_) => MainLayout(
-                appBartitle: '',
-                body: UserMainScreen(),
-                addPadding: false,
-              ),
+              builder: (_) =>
+                  MainLayout(
+                    appBartitle: '',
+                    body: UserMainScreen(),
+                    addPadding: false,
+                  ),
             ),
                 (route) => false);
-      } catch (e) {
+      }catch (e) {
+        print('-  --------- /user/me 에러 ------------');
         print(e);
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => IdInputScreen()),
-            (route) => false);
+        goLoginPage();
+        return;
+
       }
     }
 
@@ -62,8 +81,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       await storageProvier.deleteAll();
     }
 
-    checkToken();
 
+    checkToken();
+    deleteToken();
     return Scaffold(
       body: SizedBox(
         width: MediaQuery.of(context).size.width, //width가 최대사이즈여야 가운데정렬이됨.

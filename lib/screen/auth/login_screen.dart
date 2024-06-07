@@ -6,6 +6,8 @@ import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/join_layout.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/secure_storage/secure_storage.dart';
+import 'package:care_management/screen/auth/id_input_screen.dart';
+import 'package:care_management/screen/auth/renew_password_screen.dart';
 import 'package:care_management/screen/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -135,30 +137,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final refreshToken = '';
-
-                try {
-                  final resp = await Dio().post(
-                    '${apiIp}/auth/token',
-                    options: Options(headers: {
-                      'authorization': 'Bearer $refreshToken',
-                    }),
-                  );
-                } on DioException catch (e) {
-                  print(e.response);
-                  if (e.response!.data['errors'] != null) {
-                    return CustomDialog.showAlert(
-                        context,
-                        e.response!.data['errors'].values
-                            .toString()
-                            .replaceAll(RegExp(r'\(|\)'), ''));
-                  } else {
-                    return CustomDialog.showAlert(
-                        context, e.response!.data['message']);
-                  }
-                } catch (e) {
-                  print(e);
-                }
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => RenewPasswordScreen(
+                      userId: widget.userId,
+                    )));
               },
               child: const Text(
                 '비밀번호를 잊으셨나요?',
