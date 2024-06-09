@@ -225,7 +225,7 @@ class _PrescriptionBagDosageSceduleResultScreenState
                             ),
                             (route) => false);
                       } on DioException catch (e) {
-                        CustomDialog.errorAlert(context, e);
+                        ref.watch(dialogProvider.notifier).errorAlert(e);
                       } catch (e) {
                         print('-------dio 아님---------');
                         print(e);

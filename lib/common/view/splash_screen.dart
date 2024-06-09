@@ -1,3 +1,4 @@
+import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
@@ -22,11 +23,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     super.initState();
   }
 
-  void goLoginPage() {
-    Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => IdInputScreen()),
-            (route) => false);
-  }
   @override
   Widget build(BuildContext context) {
     final storageProvier = ref.read(secureStorageProvider);
@@ -37,7 +33,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final accessToken = await storageProvier.read(key: ACCESS_TOKEN_KEY);
 
       if(refreshToken == null){
-        goLoginPage();
+        ref.read(authStatusProvider.notifier).goLoginPage();
         return;
       }
 
@@ -53,7 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
         //토큰만료
         if (resp.data['code'] == 1001) {
-          goLoginPage();
+          ref.read(authStatusProvider.notifier).expiredToken();
           return;
         }
 
@@ -71,7 +67,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       }catch (e) {
         print('-  --------- /user/me 에러 ------------');
         print(e);
-        goLoginPage();
+        ref.read(authStatusProvider.notifier).goLoginPage();
         return;
 
       }
@@ -83,7 +79,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
 
     checkToken();
-    deleteToken();
     return Scaffold(
       body: SizedBox(
         width: MediaQuery.of(context).size.width, //width가 최대사이즈여야 가운데정렬이됨.

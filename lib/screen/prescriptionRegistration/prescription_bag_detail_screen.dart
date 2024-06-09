@@ -72,15 +72,15 @@ class _PrescriptionBagDetailScreenState
               //form validation으로 구현해도 좋을거같다
               //*****************
               if(_hospitalController.text.isEmpty) {
-                return CustomDialog.showAlert(context, '처방받은 병원 이름을 등록해주세요!');
+                return ref.watch(dialogProvider.notifier).showAlert('처방받은 병원 이름을 등록해주세요!');
               }
 
               if(_startDateController.text.isEmpty) {
-                return CustomDialog.showAlert(context, '시작일자를 등록해주세요!');
+                return ref.watch(dialogProvider.notifier).showAlert('시작일자를 등록해주세요!');
               }
 
               if(_takeDaysController.text.isEmpty) {
-                return CustomDialog.showAlert(context, '처방일 수를 등록해주세요!');
+                return ref.watch(dialogProvider.notifier).showAlert('처방일 수를 등록해주세요!');
               }
 
               try{
@@ -93,7 +93,7 @@ class _PrescriptionBagDetailScreenState
               }catch(e){
                 print(e);
 
-                return CustomDialog.showAlert(context, '오류가 발생했습니다');
+                return ref.watch(dialogProvider.notifier).showAlert('오류가 발생했습니다');
               }
 
 

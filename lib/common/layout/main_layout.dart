@@ -10,12 +10,14 @@ class MainLayout extends StatefulWidget {
    Widget body;
    Widget? floatingActionButton;
   bool addPadding;
+  bool showBottomNavigator;
   MainLayout({
     super.key,
     this.appBartitle = '',
     required this.body,
     this.floatingActionButton = null,
     this.addPadding = false,
+    this.showBottomNavigator = true,
   });
 
   @override
@@ -43,8 +45,9 @@ class _MainLayoutState extends State<MainLayout> {
         body: widget.addPadding ? addPadding32(widget.body) : widget.body,
         //body :  widget.addPadding
         //? addPadding32(widget.body) : widget.body,
+        bottomNavigationBar: widget.showBottomNavigator ? renderFooter() : null
 
-        bottomNavigationBar: renderFooter() );
+    );
   }
 
   Widget addPadding32(body) {

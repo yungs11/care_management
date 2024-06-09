@@ -67,14 +67,12 @@ class RenewPasswordScreen extends ConsumerWidget {
                 } on DioException catch (e) {
                   print(e.response);
                   if (e.response!.data['errors'] != null) {
-                    return CustomDialog.showAlert(
-                        context,
+                    return ref.watch(dialogProvider.notifier).showAlert(
                         e.response!.data['errors'].values
                             .toString()
                             .replaceAll(RegExp(r'\(|\)'), ''));
                   } else {
-                    return CustomDialog.showAlert(
-                        context, e.response!.data['message']);
+                    return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['message']);
                   }
                 } catch (e) {
                   print(e);

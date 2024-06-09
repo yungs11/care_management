@@ -8,7 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   final String userId;
   SignUpScreen({
     super.key,
@@ -16,10 +16,10 @@ class SignUpScreen extends StatefulWidget {
   });
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _nickNameCntrler = TextEditingController();
 
   final TextEditingController _passwordCntrler = TextEditingController();
@@ -109,11 +109,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   print(e.response);
 
                   if(e.response!.data['errors'] != null){
-                    return CustomDialog.showAlert(
-                        context, e.response!.data['errors'].values.toString().replaceAll(RegExp(r'\(|\)'),''));
+                    return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['errors'].values.toString().replaceAll(RegExp(r'\(|\)'),''));
                   }else{
-                    return CustomDialog.showAlert(
-                        context, e.response!.data['message']);
+                    return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['message']);
                   }
                 }catch(e){
                   print(e);

@@ -1,4 +1,4 @@
-
+import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/router/navigator.dart';
 import 'package:care_management/common/secure_storage/secure_storage.dart';
@@ -8,98 +8,61 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void goLoginPageProvider(){
-
-
-  Provider((ref) {
-    ref
-        .watch(navigatorKeyProvider)
-        .currentState
-        ?.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => IdInputScreen()),
-            (route) => false);
-
-  });
-}
 
 final dioProvider = Provider((ref) {
-  final dio= Dio();
+  final dio = Dio();
 
-  final storage = ref.watch(secureStorageProvider); //ref를 사용해서 또다른 provider 가져오기
+  final storage =
+      ref.watch(secureStorageProvider); //ref를 사용해서 또다른 provider 가져오기
 
-  dio.interceptors.add(
-    CustomInterceptor(
-      storage: storage,
-    )
-  );
+  dio.interceptors.add(CustomInterceptor(
+      storage: storage, ref: ref));
+
   return dio;
-
 });
 //
 //
 //
+
 class CustomInterceptor extends Interceptor {
   final FlutterSecureStorage storage;
+  final ProviderRef ref;
 
   CustomInterceptor({
     required this.storage,
+    required this.ref,
   });
 
   // 1) 요청을 보낼때
   // 요청 보내질때마다 요청 header에 accessToken : true라는 값이 있으면
   // 실제 토큰을 가져와서 authorization : bearer $token 을 헤더로 변경한다
   @override
-  void onRequest(RequestOptions options,
-      RequestInterceptorHandler handler) async {
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
     print('REQUEST [${options.path}] [${options.uri}]');
     print('options.data>>> ${options.data}');
-    print(['accessToekn in header >>>> ', options.headers['accessToken'] == 'true']);
-    print(['refreshToekn in header  >>>> ', options.headers['refreshToken'] == 'true']);
-
+    print([
+      'accessToekn in header >>>> ',
+      options.headers['accessToken'] == 'true'
+    ]);
+    print([
+      'refreshToekn in header  >>>> ',
+      options.headers['refreshToken'] == 'true'
+    ]);
 
     final token = await storage.read(key: ACCESS_TOKEN_KEY);
-    final isPathAccess = options.path ==
-        '/auth/signin'; // 토큰 새로 발급받는 api
+    final isPathAccess = (options.path.indexOf('/auth/signin') != -1 ||  options.path.indexOf('/user/me') != -1); // 토큰 새로 발급받는 api
 
-    if(token == null && !isPathAccess){
+
+    if (token == null && !isPathAccess) {
       print('token is null!');
-      //goLoginPageProvider();
-     /* Provider((ref) {
-        ref
-            .watch(navigatorKeyProvider)
-            .currentState
-            ?.pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => IdInputScreen()),
-                (route) => false);
-
-      });
-      print('왜안갈까,,');
-      return super.onRequest(options, handler); //요청 fire*/
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider((ref) {
-          ref
-              .watch(navigatorKeyProvider)
-              .currentState
-              ?.pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => IdInputScreen()),
-                  (route) => false);
-
-        });
-      });
-      //try catch문에 dioexception 반환
-      return handler.reject(DioException(
-        requestOptions: options,
-        //error: 'Received invalid status code: ${response.statusCode}',
-        type: DioExceptionType.badResponse,
-      ));
+      ref.read(authStatusProvider.notifier).expiredToken();
+      return;
     }
 
-
     if (options.headers['accessToken'] == 'true') {
-
       //헤더 삭제
       options.headers.remove('accessToken');
-
 
       //실제 토큰으로 대체
       options.headers.addAll({
@@ -125,37 +88,35 @@ class CustomInterceptor extends Interceptor {
     return super.onRequest(options, handler); //요청 fire
   }
 
- // 2) 응답을 받을 때
+  // 2) 응답을 받을 때
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) async{
-
+  void onResponse(Response response, ResponseInterceptorHandler handler) async {
     print('[response] ${response}');
     print('>>>>>ㅂㅂㅂ> ${response.statusCode == 200}');
     // TODO: implement onResponse
     // 상태 코드가 200인 경우 응답 처리
     if (response.statusCode == 200) {
-      print('얘 너 여긴 탔니?>>>> ${response.data['code'] == 1001}');
-      if(response.data['code'] == 1001) { //토큰 만료
+      //토큰 만료
+      if (response.data['code'] == 1001) {
 
         final refreshToken = await storage.read(key: REFRESH_TOKEN_KEY);
 
         if (refreshToken == null) {
           print('refreshToken없음');
-          handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                error: "Token expired",
-                type: DioExceptionType.badCertificate,
-              )
-          );
+          handler.reject(DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            error: "Token expired",
+            type: DioExceptionType.badCertificate,
+          ));
         }
 
-        final isPathRefresh = response.requestOptions.path ==
-            '/auth/refresh'; // 토큰 새로 발급받는 api
+        final isPathRefresh =
+            response.requestOptions.path == '/auth/refresh'; // 토큰 새로 발급받는 api
         final options = response.requestOptions;
 
-        if (!isPathRefresh) { //토큰 만료이나, 새로 토큰 발급 받는 url이 아니라면
+        if (!isPathRefresh) {
+          //토큰 만료이나, 새로 토큰 발급 받는 url이 아니라면
           print('리프레시 토큰으로 억세스 토큰 재발급 로직 시작');
 
           final dio = Dio();
@@ -165,62 +126,81 @@ class CustomInterceptor extends Interceptor {
               '${apiIp}/auth/refresh',
               options: Options(
                 headers: {
-
                   'RefreshToken': 'Bearer $refreshToken',
+                  'Authorization': 'Bearer $refreshToken',
                 },
               ),
             );
 
-            final new_accessToken = resp.data['accessToken'];
-            final new_refreshToken = resp.data['refreshToken'];
+            print(refreshToken);
+            print(resp);
 
-            options.headers.addAll({
-              'authorization': 'Bearer $new_accessToken',
-              'RefreshToken': 'Bearer $new_refreshToken'
-            });
+            if(resp.data['code'] != 1000){ //인증 토큰이 유효하지 않습니다.
+              final new_accessToken = resp.data['accessToken'];
+              final new_refreshToken = resp.data['refreshToken'];
 
-            await storage.write(key: ACCESS_TOKEN_KEY, value: new_accessToken);
-            await storage.write(
-                key: REFRESH_TOKEN_KEY, value: new_refreshToken);
+              options.headers.addAll({
+                'authorization': 'Bearer $new_accessToken',
+                'RefreshToken': 'Bearer $new_refreshToken'
+              });
 
-            //토큰만료로  에러 발생시킨 요청해서 토큰만 바꿔서 다시 모두 재전송
-            final response = await dio.fetch(options);
+              await storage.write(key: ACCESS_TOKEN_KEY, value: new_accessToken);
+              await storage.write(
+                  key: REFRESH_TOKEN_KEY, value: new_refreshToken);
 
-            //새로 받은 요청은 성공으로 요청함.
-            //handler.resolve => 성공으로 리턴
-            return handler.resolve(response);
+              //토큰만료로  에러 발생시킨 요청해서 토큰만 바꿔서 다시 모두 재전송
+              final response = await dio.fetch(options);
+
+              //새로 받은 요청은 성공으로 요청함.
+              //handler.resolve => 성공으로 리턴
+              return handler.resolve(response);
+            }
+
+
           } on DioException catch (e) {
-            print('-----refresh 실패-----');
+            print('-----refresh dio 실패-----');
             print(e.response);
 
-            //
-            goLoginPageProvider();
-
+            ref.read(authStatusProvider.notifier).expiredToken();
+          }catch (e){
+            print('-----refresh dio 실패-----');
+            print(e);
           }
 
           // TODO: implement onError
         }
-      }else{
+      } else {
+
         return handler.resolve(response);
+
+        //[response] {"code":422,"message":"유효하지 않은 파라미터입니다.","errors":{"Password":"비밀번호는 8~20자 이내로 입력하세요."}}
+       /* return handler.reject(
+            DioException(
+              requestOptions: response.requestOptions,
+              response: response,
+              error: 'Received invalid status code: ${response.statusCode}',
+              type: DioExceptionType.badResponse,
+            ));*/
+
       }
-     // print('여긴탔나?');
-     //
+      //
     } else {
       print('뭐냥...');
       // 상태 코드가 200이 아닌 경우, 에러 발생
       print('response ${response.statusCode}');
+      handler.reject(
       DioException(
         requestOptions: response.requestOptions,
         error: 'Received invalid status code: ${response.statusCode}',
         type: DioExceptionType.badResponse,
-      );
+      ));
     }
-
   }
+
   // 3) 에러가 났을 때
   @override
-  Future<void> onError(DioException err,
-      ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+      DioException err, ErrorInterceptorHandler handler) async {
     // 401 에러가 났을 때 (토큰 에러 )
     // 토큰을 재발급 받는 시도를 하고 토큰이 재발급되면
     // 다시 새로운 토큰으로 요청한다
@@ -291,8 +271,7 @@ class CustomInterceptor extends Interceptor {
         return handler.reject(err); //에러 발생
       } }*/
 
-
-      // TODO: implement onError
+    // TODO: implement onError
 
 /*
     if (err.response?.statusCode == 404 || err.response?.statusCode == 500) {
@@ -345,4 +324,4 @@ class CustomInterceptor extends Interceptor {
       return handler.reject(err);
     }*/
   }
-  }
+}

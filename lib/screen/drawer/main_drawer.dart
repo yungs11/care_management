@@ -1,4 +1,5 @@
 import 'package:care_management/common/component/dialog.dart';
+import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
@@ -14,6 +15,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+//테스트용
+class ScreenModel {
+  final WidgetBuilder builder;
+  final String name;
+
+  ScreenModel({required this.builder, required this.name});
+}
 
 class MainDrawer extends ConsumerStatefulWidget {
   const MainDrawer({super.key});
@@ -88,21 +97,7 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
       Spacer(),
       ListTile(
         onTap: () async {
-          try {
-            final resp = await dio.post('${apiIp}/auth/signout',
-                options: Options(
-                  headers: {'accessToken': 'true'},
-                ));
-            print(resp);
-
-            await storageProvider.deleteAll();
-
-            Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => IdInputScreen()),
-                (route) => false);
-          } on DioException catch (e) {
-            CustomDialog.errorAlert(context, e);
-          }
+          ref.watch(authStatusProvider.notifier).logOut();
         },
         title: Align(
             alignment: Alignment.centerRight,

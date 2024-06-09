@@ -14,23 +14,17 @@ import 'package:care_management/screen/user_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/common/component/custom_components.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-//테스트용
-class ScreenModel {
-  final WidgetBuilder builder;
-  final String name;
 
-  ScreenModel({required this.builder, required this.name});
-}
-
-class IdInputScreen extends StatefulWidget {
+class IdInputScreen extends ConsumerStatefulWidget {
   const IdInputScreen({super.key});
 
   @override
-  State<IdInputScreen> createState() => _IdInputScreenState();
+  ConsumerState<IdInputScreen> createState() => _IdInputScreenState();
 }
 
-class _IdInputScreenState extends State<IdInputScreen> {
+class _IdInputScreenState extends ConsumerState<IdInputScreen> {
   String userId = '';
   TextEditingController textController = TextEditingController();
 
@@ -68,6 +62,7 @@ class _IdInputScreenState extends State<IdInputScreen> {
     return MainLayout(
       appBartitle: '',
       addPadding: true,
+      showBottomNavigator: false,
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -125,12 +120,11 @@ class _IdInputScreenState extends State<IdInputScreen> {
                     print(e.response);
                     // 가입이 불가능한 상태(중복 이메일이 있음 -> 로그인페이지로 이동)
                       // 500 아닌 경우 오류 메시지
-                      return CustomDialog.showAlert(
-                          context, e.response!.data['message']);
+                      return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['message']);
 
 
                   } catch (e) {
-                    return CustomDialog.showAlert(context, '에러 발생');
+                    return ref.watch(dialogProvider.notifier).showAlert('에러 발생');
                   }
                 },
                 buttonText: '확인'),

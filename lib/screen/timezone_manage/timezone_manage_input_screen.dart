@@ -111,7 +111,7 @@ class _MedTimeManageInputScreenState
                           MaterialPageRoute(builder: (_) => TimezoneScreen()),
                           (route) => false);
                     } on DioException catch (e) {
-                      CustomDialog.errorAlert(context, e);
+                      ref.watch(dialogProvider.notifier).errorAlert(e);
                     }
                     //medTImeList
                   },
@@ -138,7 +138,7 @@ class _MedTimeManageInputScreenState
                                     builder: (_) => TimezoneScreen()),
                                 (route) => false);
                           } on DioException catch (e) {
-                            CustomDialog.errorAlert(context, e);
+                            ref.watch(dialogProvider.notifier).errorAlert(e);
                           }
                           //medTImeList
                         },
@@ -179,7 +179,7 @@ class _MedTimeManageInputScreenState
                                     builder: (_) => TimezoneScreen()),
                                 (route) => false);
                           } on DioException catch (e) {
-                            CustomDialog.errorAlert(context, e);
+                            ref.watch(dialogProvider.notifier).errorAlert(e);
                           }
                           //medTImeList
                         },

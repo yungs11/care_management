@@ -99,7 +99,7 @@ class _PrescriptionHistoryScreenState extends ConsumerState<PrescriptionHistoryS
       //prescription = prescription.copyWith(items: timezoneList);
     } on DioException catch (e) {
       print(e);
-      CustomDialog.errorAlert(context, e);
+      ref.watch(dialogProvider.notifier).errorAlert(e);
     } catch (e) {
       print(e);
     }

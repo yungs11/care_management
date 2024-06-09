@@ -48,7 +48,7 @@ class _PrescriptionBagInputScreenState
             buttonText: '등록 시작',
             onButtonPressed: () async{
               if(_prescriptionTitleController.text.isEmpty) {
-                return CustomDialog.showAlert(context, '처방전 이름을 등록해주세요!');
+                return ref.watch(dialogProvider.notifier).showAlert( '처방전 이름을 등록해주세요!');
               }
 
               try{
@@ -61,7 +61,7 @@ class _PrescriptionBagInputScreenState
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => PrescriptionBagDetailScreen()));
               }catch(e){
-                  return CustomDialog.showAlert(context, '오류가 발생했습니다');
+                  return ref.watch(dialogProvider.notifier).showAlert('오류가 발생했습니다');
               }
 
             },

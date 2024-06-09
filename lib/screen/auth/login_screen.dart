@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:care_management/common/component/dialog.dart';
+import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/join_layout.dart';
@@ -84,54 +85,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   "auto_login": true
                 };
 
-                print('${apiIp}/auth/signin');
 
-                try {
-                  final resp = await dio.post('${apiIp}/auth/signin',
-                      /*options: Options(headers: {
-                        'authorization': 'Bearer $token',
-                      }),*/
-                      data: body);
+                final authStatus = ref.read(authStatusProvider.notifier);
+                authStatus.logIn(body);
 
-                  print(resp);
-
-                  final responseData = resp.data['data']; // 최상위 'data' 필드에 접근
-                  final refreshToken = responseData[
-                      'refresh_token']; // 'data' 객체 내의 'refresh_token'
-                  final accessToken = responseData[
-                      'access_token']; // 'data' 객체 내의 'access_token'
-
-                  final storage = ref.read(secureStorageProvider);
-
-                  await storage.write(
-                      key: REFRESH_TOKEN_KEY, value: refreshToken);
-                  await storage.write(
-                      key: ACCESS_TOKEN_KEY, value: accessToken);
-
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (_) => MainLayout(
-                          appBartitle: '',
-                          body: UserMainScreen(),
-                          addPadding: false,
-                        ),
-                      ),
-                      (route) => false);
-                } on DioException catch (e) {
-                  print(e.response);
-                  if (e.response!.data['errors'] != null) {
-                    return CustomDialog.showAlert(
-                        context,
-                        e.response!.data['errors'].values
-                            .toString()
-                            .replaceAll(RegExp(r'\(|\)'), ''));
-                  } else {
-                    return CustomDialog.showAlert(
-                        context, e.response!.data['message']);
-                  }
-                } catch (e) {
-                  print(e);
-                }
               },
               buttonText: '로그인',
             ),

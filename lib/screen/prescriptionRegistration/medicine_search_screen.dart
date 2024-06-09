@@ -204,7 +204,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
                 MaterialPageRoute(builder: (_) => DosageInputScreen(medicineItem: medicineItem, timezoneId: widget.timezoneId,)));
 
           }catch(e){
-            return await CustomDialog.showAlert(context, '등록할 약을 선택해주세요.');
+            return await ref.watch(dialogProvider.notifier).showAlert('등록할 약을 선택해주세요.');
           }
         },
         buttonText: '선택');

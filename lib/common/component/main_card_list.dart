@@ -22,7 +22,6 @@ class MainCardList extends ConsumerStatefulWidget {
   FutureProvider<List<MedicationScheduleBoxModel>>? onReloadRequest;
   bool expandCard;
 
-
   MainCardList({
     super.key,
     required this.title,
@@ -54,7 +53,7 @@ class _MainCardListState extends ConsumerState<MainCardList> {
 
   void _updatetakeAmount(TakingMedicineItem pill, double value) async {
     final dio = ref.watch(dioProvider);
-    try{
+    try {
       final resp = await dio.patch('${apiIp}/plan/item/takeamount',
           options: Options(headers: {'accessToken': 'true'}),
           data: {
@@ -63,10 +62,9 @@ class _MainCardListState extends ConsumerState<MainCardList> {
           });
 
       ref.refresh(widget.onReloadRequest!);
-
-    }on DioException catch(e){
-      CustomDialog.errorAlert(context, e);
-    }catch(e){
+    } on DioException catch (e) {
+      ref.watch(dialogProvider.notifier).errorAlert(e);
+    } catch (e) {
       print(e);
     }
   }
@@ -112,10 +110,11 @@ class _MainCardListState extends ConsumerState<MainCardList> {
           child: IconButton(
               onPressed: () async {
                 final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-                final formatedSelectedDay = DateFormat('yyyy-MM-dd').format(widget.selectedDay);
+                final formatedSelectedDay =
+                    DateFormat('yyyy-MM-dd').format(widget.selectedDay);
 
                 if (today != formatedSelectedDay) {
-                  CustomDialog.showAlert(context, '변경은 당일만 가능합니다.');
+                  ref.watch(dialogProvider.notifier).showAlert('변경은 당일만 가능합니다.');
                   return;
                 }
                 final dio = ref.watch(dioProvider);
@@ -128,11 +127,10 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                         'timezone_id': timingId,
                       });
 
-
                   print(resp);
                   ref.refresh(widget.onReloadRequest!);
                 } on DioException catch (e) {
-                  CustomDialog.errorAlert(context, e);
+                  ref.watch(dialogProvider.notifier).errorAlert(e);
                 } catch (e) {
                   print(e);
                 }
@@ -193,12 +191,15 @@ class _MainCardListState extends ConsumerState<MainCardList> {
       child: IconButton(
           onPressed: () async {
             final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-            final formatedSelectedDay = DateFormat('yyyy-MM-dd').format(widget.selectedDay);
+            final formatedSelectedDay =
+                DateFormat('yyyy-MM-dd').format(widget.selectedDay);
 
             if (today != formatedSelectedDay) {
-              CustomDialog.showAlert(context, '변경은 당일만 가능합니다.');
+              ref.watch(dialogProvider.notifier).showAlert('변경은 당일만 가능합니다.');
               return;
             }
+
+
 
             final dio = ref.watch(dioProvider);
 
@@ -227,7 +228,7 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                     }
                   });  */
             } on DioException catch (e) {
-              CustomDialog.errorAlert(context, e);
+              ref.watch(dialogProvider.notifier).errorAlert(e);
             } catch (e) {}
           },
           icon: Icon(
@@ -286,6 +287,12 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
+
+                if(pill.takeStatus){
+                  ref.watch(dialogProvider.notifier).showAlert('복용상태를 취소 후 변경해주세요.');
+                  return;
+                }
+
                 if (pill.takeAmount - 1 < 0) {
                   pill.takeAmount = 0.0;
                   return;
@@ -330,6 +337,12 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
+
+                if(pill.takeStatus){
+                  ref.watch(dialogProvider.notifier).showAlert('복용상태를 취소 후 변경해주세요.');
+                  return;
+                }
+
                 pill.takeAmount += 1;
 
                 _updatetakeAmount(pill, pill.takeAmount);
@@ -469,9 +482,9 @@ class _MemoBoxState extends ConsumerState<MemoBox> {
 
                       ref.refresh(widget.onReloadRequest!);
                     } on DioException catch (e) {
-                      CustomDialog.errorAlert(context, e);
+                      ref.watch(dialogProvider.notifier).errorAlert(e);
                     } catch (e) {
-                      CustomDialog.errorExceptionAlert(context, e);
+                      ref.watch(dialogProvider.notifier).errorExceptionAlert(e);
                     } /*
                     setState(() {
                       showMemoPad = !showMemoPad;

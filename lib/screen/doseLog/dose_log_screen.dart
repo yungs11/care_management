@@ -52,7 +52,7 @@ class _DoseLogScreenState extends ConsumerState<DoseLogScreen> {
       print(
           '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
     } on DioException catch (e) {
-      CustomDialog.errorAlert(context, e);
+      ref.watch(dialogProvider.notifier).errorAlert(e);
     } catch (e) {
       print(e);
     }

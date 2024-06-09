@@ -75,7 +75,7 @@ class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
       });
 
     } on DioException catch (e) {
-      CustomDialog.errorAlert(context, e);
+      ref.watch(dialogProvider.notifier).errorAlert(e);
     } catch (e) {
       print(e);
     }

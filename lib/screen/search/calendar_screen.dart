@@ -59,12 +59,24 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime? selectedDay;
+  Map<DateTime, List<dynamic>>? _events;
+
+ @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _events = {
+      DateTime.now().subtract(Duration(days: 2)): ['Event A1', 'Event A2'],
+      DateTime.now().subtract(Duration(days: 1)): ['Event B1'],
+      DateTime.now(): ['Event C1', 'Event C2', 'Event C3'],
+    };
+  }
 
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-  /*  if (widget.searchDay != null)
+    /*  if (widget.searchDay != null)
       ref.read(focusedDayProvider.notifier).state = widget.searchDay!;*/
   }
 
@@ -120,13 +132,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     // print(focusedDay);
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => MainLayout(
-                          appBartitle: '처방 내역',
-                          body: PrescriptionHistoryScreen(
-                            selectedDate:
-                            DateFormat('yyyy-MM-dd').format(focusedDay),
-                          ),
-                          addPadding: false,
-                        )));
+                              appBartitle: '처방 내역',
+                              body: PrescriptionHistoryScreen(
+                                selectedDate:
+                                    DateFormat('yyyy-MM-dd').format(focusedDay),
+                              ),
+                              addPadding: false,
+                            )));
                   },
                   // 선택된 날짜를 표시하기 위한 조건
                   selectedDayPredicate: (day) {
@@ -141,13 +153,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   calendarStyle: CalendarStyle(
                     isTodayHighlighted: false, //오늘날짜 highlight 표시 끔
                   ),
+                  eventLoader: (date) {
+                    return _events![date] ?? [];
+                  },
                   calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, foucusedDay) {
-                        return _renderDefaultDate(day, defaultTextStyle);
-                      }, selectedBuilder: (context, date, events) {
+                    return _renderDefaultDate(day, defaultTextStyle);
+                  }, selectedBuilder: (context, date, events) {
                     return _renderSelectedDate(date);
                   }, markerBuilder: (context, date, events) {
-                    return _renderMarkerBuilder(date, data!);
+                    if (events.isNotEmpty)
+                      return _renderMarkerBuilder(date, data!, events);
                   }),
                 ),
               ),
@@ -159,6 +175,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
     );
   }
+
   Widget _renderDefaultDate(DateTime day, defaultTextStyle) {
     String dayFormatted = day.day.toString().padLeft(2, '0');
     return Center(
@@ -186,57 +203,61 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _renderMarkerBuilder(
-      DateTime date, List<PrescriptionModel> prescriptionList) {
-
+      DateTime date, List<PrescriptionModel> prescriptionList, List events) {
     print('markerbuilder ${prescriptionList}');
     // 모든 날짜를 동일한 시간으로 설정하여 비교
     String normalizedDate = DateFormat('yyyy-MM-dd').format(date);
 
+    for (PrescriptionModel p in prescriptionList) {
+      for (String date in p.takeDatesList!) {
+        print('takeList > ${date}');
+        print('nomaldate > ${normalizedDate}');
+        print('${p.prescriptionId} /// ${p.markerTop}');
 
-
-     for(PrescriptionModel p in prescriptionList){
-
-       for(String date in p.takeDatesList!){
-         print('takeList > ${date}');
-         print('nomaldate > ${normalizedDate}');
-          print('${p.prescriptionId} /// ${p.markerTop}');
-
-         if(date == normalizedDate){
-           return Positioned(
-             right: p.markerTop!.toDouble(),
-             //top:5.0,
-             //  right: colorMap.values.toList().indexOf(_medicineDates[normalizedDate])+1.toDouble(),
-             //top: 1,
-               top: p.markerTop!.toDouble(),
-             //  top: 6.0,
-               child: _buildMedicineMarker(p.markerColor!),
-           );
-         }
-       }
+        if (date == normalizedDate) {
+          return Positioned(
+            right: p.markerTop!.toDouble(),
+            //top:5.0,
+            //  right: colorMap.values.toList().indexOf(_medicineDates[normalizedDate])+1.toDouble(),
+            //top: 1,
+            top: p.markerTop!.toDouble(),
+            //  top: 6.0,
+            child: _buildMedicineMarker(p.markerColor!, events),
+          );
+        }
+      }
     }
 
-  //마커 없는 곳 크기 0인 위젯 생성
-  return SizedBox.shrink();
-}
+    //마커 없는 곳 크기 0인 위젯 생성
+    return SizedBox.shrink();
+  }
 
-Widget _buildMedicineMarker(Color markerColor) {
+  Widget _buildMedicineMarker(Color markerColor, List events) {
 //print(toMarkDates[date]);
-  return Container(
-    decoration:
-    BoxDecoration(shape: BoxShape.circle, color: markerColor),
-    width: 8.0,
-    height: 8.0,
-  );
-}
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: markerColor),
+      width: 8.0 * events.length,
+      height: 8.0,
+      child: Center(
+        child: Text(
+          '${events.length}',
+          style: TextStyle().copyWith(
+            color: Colors.white,
+            fontSize: 12.0,
+          ),
+        ),
+      ),
+    );
+  }
 
-
-Widget _renderFloatingActionButton() {
-  return FloatingActionButton(
-    onPressed: () {},
-    backgroundColor: PRIMARY_COLOR,
-    foregroundColor: Colors.white,
-    shape: CircleBorder(),
-    child: Icon(Icons.add),
-  );
-}
+  Widget _renderFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () {},
+      backgroundColor: PRIMARY_COLOR,
+      foregroundColor: Colors.white,
+      shape: CircleBorder(),
+      child: Icon(Icons.add),
+    );
+  }
 }
