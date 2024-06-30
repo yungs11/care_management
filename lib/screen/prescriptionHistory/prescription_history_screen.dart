@@ -1,14 +1,8 @@
 import 'package:care_management/common/component/custom_components.dart';
-import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/prescription_model.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/service/history_service.dart';
-import 'package:care_management/screen/prescriptionRegistration/prescription_bag_detail_screen.dart';
-import 'package:care_management/screen/calendar/calendar_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

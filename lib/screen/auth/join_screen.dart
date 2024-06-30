@@ -1,7 +1,4 @@
 import 'package:care_management/common/component/custom_components.dart';
-import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/join_layout.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
 import 'package:care_management/screen/auth/service/auth_service.dart';

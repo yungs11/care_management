@@ -1,18 +1,8 @@
-import 'dart:convert';
-
-import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/const/AuthStatus.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
-import 'package:care_management/common/layout/join_layout.dart';
-import 'package:care_management/common/layout/main_layout.dart';
-import 'package:care_management/common/secure_storage/secure_storage.dart';
-import 'package:care_management/screen/auth/id_input_screen.dart';
-import 'package:care_management/screen/auth/renew_password_screen.dart';
-import 'package:care_management/screen/userMain/user_main_screen.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:care_management/common/component/custom_components.dart';
+import 'package:care_management/common/const/AuthStatus.dart';
+import 'package:care_management/common/layout/join_layout.dart';
+import 'package:care_management/screen/auth/renew_password_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -39,7 +29,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dio = ref.watch(dioProvider);
     print('userId > ${widget.userId}');
 
     return JoinLayout(

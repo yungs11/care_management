@@ -53,7 +53,7 @@ class DialogStateNotifier extends StateNotifier<bool> {
       print('여기탔어?>>>> $e');
     }
 
-    print(e.data['errors']);
+    print(e);
 
     if (e.data['errors'] != null) {
       if (e.data['errors'].isNotEmpty) // {}이 아닌지 확인

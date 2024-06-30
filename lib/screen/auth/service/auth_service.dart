@@ -18,27 +18,47 @@ class AuthService {
     dio.options.baseUrl = '${apiIp}';
   }
 
-  Future<int> checkUser(String email) async {
+  Future<String> checkValidUser(String refreshToken) async {
+    try {
+      final resp = await dio.get('/user/me',
+          options: Options(headers: {
+            'authorization': 'Bearer $refreshToken',
+          }));
+
+      //토큰만료
+      if (resp.data['code'] == 1001) {
+        return 'expired';
+      }
+
+      return '';
+    } catch (e) {
+      return 'loginPage';
+    }
+  }
+
+  Future<String> checkUser(String email) async {
     //interceptor 가지 않기 위해 이렇게 처리
+    String goPage = '';
     Response? resp = null;
     try {
       resp = await dio.post(
         '/user/check-email',
         data: {'email': email},
       );
-      if (resp!.data['code'] == 1100 ||
-          resp.data['code'] == 1120 ||
-          resp.data['code'] == 1110)
-        return resp.data['code']; // 단순히 응답 코드를 반환
-      else
+      if (resp!.data['code'] == 1100) {
+        goPage = 'login';
+      } else if (resp.data['code'] == 1120 || resp.data['code'] == 1110) {
+        goPage = 'join';
+      } else
         ref.watch(dialogProvider.notifier).errorAlert(resp);
-      return -1;
+
+      return goPage;
     } on DioException catch (e) {
       ref.watch(dialogProvider.notifier).errorAlert(e);
-      return -1;
     } catch (e) {
       print(e);
-      return -1;
+    } finally {
+      return goPage;
     }
   }
 
@@ -59,7 +79,6 @@ class AuthService {
       return ref.watch(dialogProvider.notifier).errorAlert(e);
     }
   }
-
 
   Future<bool> logout() async {
     try {

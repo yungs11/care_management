@@ -1,18 +1,10 @@
-import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
-import 'package:care_management/common/secure_storage/secure_storage.dart';
-import 'package:care_management/common/util/errorUtil.dart';
 import 'package:care_management/screen/doseLog/dose_log_screen.dart';
-import 'package:care_management/screen/auth/id_input_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
-import 'package:care_management/screen/timezone_manage/timezone_manage_screen.dart';
-import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
-import 'package:dio/dio.dart';
+import 'package:care_management/screen/timezone_manage/timezone_manage_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -37,8 +29,6 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final dio = ref.watch(dioProvider);
-    final storageProvider = ref.watch(secureStorageProvider);
 
     final menus = [
       ScreenModel(

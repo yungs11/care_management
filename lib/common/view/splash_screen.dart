@@ -1,9 +1,8 @@
 import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/secure_storage/secure_storage.dart';
-import 'package:care_management/screen/auth/id_input_screen.dart';
+import 'package:care_management/screen/auth/service/auth_service.dart';
 import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -26,57 +25,42 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final storageProvier = ref.read(secureStorageProvider);
-    final dio = ref.read(dioProvider);
+    final authService = ref.read(authServiceProvider);
 
     void checkToken() async {
       final refreshToken = await storageProvier.read(key: REFRESH_TOKEN_KEY);
       final accessToken = await storageProvier.read(key: ACCESS_TOKEN_KEY);
 
-      if(refreshToken == null){
+      if (refreshToken == null) {
         ref.read(authStatusProvider.notifier).goLoginPage();
         return;
       }
 
+      final resp = await authService.checkValidUser(refreshToken);
 
-      try {
-        final resp = await dio.get('${apiIp}/user/me',
-            options: Options(headers: {
-              'authorization': 'Bearer $refreshToken',
-            }));
+      //토큰만료
+      if (resp == 'expired') {
+        ref.read(authStatusProvider.notifier).expiredToken();
+        return;
+      } else if (resp == 'login') {
+        ref.read(authStatusProvider.notifier).goLoginPage();
+        return;
+      }
 
-        print('-----------111-');
-        print(resp.data['code']);
-
-        //토큰만료
-        if (resp.data['code'] == 1001) {
-          ref.read(authStatusProvider.notifier).expiredToken();
-          return;
-        }
-
-
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) =>
-                  MainLayout(
-                    appBartitle: '',
-                    body: UserMainScreen(),
-                    addPadding: false,
-                  ),
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => MainLayout(
+              appBartitle: '',
+              body: UserMainScreen(),
+              addPadding: false,
             ),
-                (route) => false);
-      }catch (e) {
-        print('-  --------- /user/me 에러 ------------');
-        print(e);
-        ref.read(authStatusProvider.notifier).goLoginPage();
-        return;
-
-      }
+          ),
+          (route) => false);
     }
 
     void deleteToken() async {
       await storageProvier.deleteAll();
     }
-
 
     checkToken();
     return Scaffold(

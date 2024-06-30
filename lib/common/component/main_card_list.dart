@@ -1,13 +1,9 @@
 import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
 import 'package:care_management/screen/userMain/service/userMain_service.dart';
-import 'package:care_management/screen/userMain/user_main_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

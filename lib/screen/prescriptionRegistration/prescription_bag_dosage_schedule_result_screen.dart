@@ -1,9 +1,6 @@
 import 'package:care_management/common/component/custom_components.dart';
-import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/component/dosage_scedule_list.dart';
 import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/prescription_model.dart';
@@ -11,7 +8,6 @@ import 'package:care_management/common/model/timezone_box_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/service/prescription_service.dart';
 import 'package:care_management/screen/search/medicine_search_dialog.dart';
 import 'package:care_management/screen/userMain/user_main_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

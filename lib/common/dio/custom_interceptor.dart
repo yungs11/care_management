@@ -32,10 +32,8 @@ class CustomInterceptor extends Interceptor {
     ]);
 
     final token = await storage.read(key: ACCESS_TOKEN_KEY);
-    final isPathAccess = (options.path.indexOf('/auth/signin') != -1 ||  options.path.indexOf('/user/me') != -1); // 토큰을 발급하는 API
 
-
-    if (token == null && !isPathAccess) {
+    if (token == null) {
       print('token is null!');
       ref.read(authStatusProvider.notifier).expiredToken();
       return;
@@ -80,6 +78,8 @@ class CustomInterceptor extends Interceptor {
       if (response.data['code'] == 200) {
         handler.resolve(response);
       }
+
+
       //토큰 만료
       else if (response.data['code'] == 1001) {
 
@@ -104,10 +104,8 @@ class CustomInterceptor extends Interceptor {
           //토큰 만료이나, 새로 토큰 발급 받는 url이 아니라면
           print('리프레시 토큰으로 억세스 토큰 재발급 로직 시작');
 
-          final dio = Dio();
-
           try {
-            final resp = await dio.post(
+            final resp = await Dio().post(
               '${apiIp}/auth/refresh',
               options: Options(
                 headers: {
@@ -121,8 +119,11 @@ class CustomInterceptor extends Interceptor {
             print(resp);
 
             if(resp.data['code'] != 1000){ //인증 토큰이 유효하지 않습니다.
-              final new_accessToken = resp.data['accessToken'];
-              final new_refreshToken = resp.data['refreshToken'];
+              final responseData = resp.data['data']; // 최상위 'data' 필드에 접근
+              final new_refreshToken = responseData[
+              'refresh_token']; // 'data' 객체 내의 'refresh_token'
+              final new_accessToken = responseData[
+              'access_token']; // 'data' 객체 내의 'access_token'
 
               options.headers.addAll({
                 'authorization': 'Bearer $new_accessToken',
@@ -133,8 +134,10 @@ class CustomInterceptor extends Interceptor {
               await storage.write(
                   key: REFRESH_TOKEN_KEY, value: new_refreshToken);
 
-              //토큰만료로  에러 발생시킨 요청해서 토큰만 바꿔서 다시 모두 재전송
-              final response = await dio.fetch(options);
+              print('토큰만료로  에러 발생시킨 요청해서 토큰만 바꿔서 다시 모두 재전송');
+              print(options.uri);
+              print(options.headers);
+              final response = await Dio().fetch(options);
 
               //새로 받은 요청은 성공으로 요청함.
               //handler.resolve => 성공으로 리턴
