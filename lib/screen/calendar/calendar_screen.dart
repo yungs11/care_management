@@ -4,6 +4,8 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/prescription_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
+import 'package:care_management/screen/calendar/service/calendar_service.dart';
+import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -13,32 +15,64 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../common/dio/dio.dart';
 
+class Event {
+  final String title;
+
+  const Event(this.title);
+
+  @override
+  String toString() => title;
+}
+
+// 처방전의 유효 기간 동안 날짜와 이름을 맵핑
+void mapPrescriptionsToDates(List<PrescriptionModel> prescriptions) {
+  Map<DateTime, List<Event>> events = {};
+
+  for (var prescription in prescriptions) {
+    for (var date in prescription.takeDatesList!) {
+      // 날짜를 YYYY-MM-DD 형식으로 일관되게 처리
+      DateTime normalizedDate = DateTime.parse(date).toUtc();
+      if (!events.containsKey(normalizedDate)) {
+        events[normalizedDate] = [];
+      }
+      events[normalizedDate]!.add(Event(prescription.prescriptionName!));
+    }
+  }
+
+  // 결과 확인을 위한 출력
+  events.forEach((key, value) {
+    print('Date: $key, Prescriptions: $value');
+  });
+}
+
 final focusedDayProvider = StateProvider<DateTime>((ref) =>
     DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
 
 final fetchDataProvider = FutureProvider<List<PrescriptionModel>>((ref) async {
   List<PrescriptionModel> prescriptionList = [];
+
   print('focusedDay >>> ${ref.watch(focusedDayProvider)}');
   final focusedDay = ref.watch(focusedDayProvider);
 
-  final dio = ref.watch(dioProvider);
+  final calService = ref.read(calendarServiceProvider);
 
   try {
-    final resp = await dio.get('${apiIp}/plan/month',
-        options: Options(headers: {'accessToken': 'true'}),
-        queryParameters: {'year': focusedDay.year, 'month': focusedDay.month});
+    final prescriptionPerMonthList = await calService
+        .fetchPrescriptionsPerMonth(focusedDay.year, focusedDay.month);
     PrescriptionModel.initialMarkerColor();
-    prescriptionList = resp.data['data']['items']
+    prescriptionList = prescriptionPerMonthList
         .map<PrescriptionModel>((e) => PrescriptionModel.fromJson(json: e))
         .toList();
 
     //     ref.read(MedicationScheduleBoxProvider.notifier).initMedicationBoxModel(scheduleBoxModel);
 
+    mapPrescriptionsToDates(prescriptionList);
+
     print(
         '>>>>>>>>>>>처방전이름 ${prescriptionList.map((e) => e.prescriptionName)}');
     print('>>>>>>>>>>>시작일시 ${prescriptionList.map((e) => e.startedAt)}');
   } on DioException catch (e) {
-    //CustomDialog.errorAlert(context, e);
+    ref.watch(dialogProvider.notifier).errorAlert(e);
   } catch (e) {
     print(e);
   }
@@ -59,17 +93,31 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime? selectedDay;
-  Map<DateTime, List<dynamic>>? _events;
+  late final ValueNotifier<List<Event>> _selectedEvents;
+  Map<DateTime, List<Event>>? _events;
 
- @override
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _selectedEvents.dispose();
+  }
+
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    //test222
+    print('selecetdDay>>>>> ${widget.searchDay}');
+
+    _selectedEvents = ValueNotifier(_getEventsForDay(widget.searchDay!));
     _events = {
-      DateTime.now().subtract(Duration(days: 2)): ['Event A1', 'Event A2'],
-      DateTime.now().subtract(Duration(days: 1)): ['Event B1'],
-      DateTime.now(): ['Event C1', 'Event C2', 'Event C3'],
+      DateTime(2024, 06, 09).toUtc(): [Event('기쁨병원 약봉투'), Event('약봉투2')],
+      DateTime(2024, 06, 10).toUtc(): [Event('건강하자')],
+      DateTime(2024, 06, 11).toUtc(): [
+        Event('약봉투2'),
+        Event('약봉투3'),
+        Event('건강건강')
+      ],
     };
   }
 
@@ -79,6 +127,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.didChangeDependencies();
     /*  if (widget.searchDay != null)
       ref.read(focusedDayProvider.notifier).state = widget.searchDay!;*/
+  }
+
+  List<Event> _getEventsForDay(DateTime day) {
+    // Implementation example
+    //String dayT=DateFormat('yyyy-MM-dd').format(day);
+    //Map<String, dynamic> events = context.read<EventsProvider>().getEvents();
+    if (_events == null)
+      return [];
+    else
+      return _events![day] ?? [];
+
+    //return _events![day] ?? [];
   }
 
   @override
@@ -110,15 +170,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     double availableHeight = screenHeight - appBarHeight - footerHeight;
 
     return MainLayout(
-      appBartitle: '날짜선택',
+      appBartitle: '날짜별 약봉투',
       //  floatingActionButton: _renderFloatingActionButton(),
       body: asyncValue.when(
         data: (data) => Column(
           //mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            /*
             SizedBox(
               height: appBarHeight * 2,
-            ),
+            ),*/
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
@@ -128,18 +189,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   focusedDay: focusedDay,
                   firstDay: DateTime(1800),
                   lastDay: DateTime(3000),
-                  onDaySelected: (selectedDay, focusedDay) {
+                  onDaySelected: (selectedDay1, focusedDay1) {
+                    // Call `setState()` when updating the selected day
+                    if (!isSameDay(selectedDay, selectedDay1)) {
+                      // Call `setState()` when updating the selected day
+                      setState(() {
+                        selectedDay = selectedDay1;
+                        //ref.read(focusedDayProvider.notifier).state = focusedDay1;
+                      });
+                      _selectedEvents.value = _getEventsForDay(selectedDay1);
+                    }
                     // print(selectedDay);
                     // print(focusedDay);
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => MainLayout(
-                              appBartitle: '처방 내역',
-                              body: PrescriptionHistoryScreen(
-                                selectedDate:
-                                    DateFormat('yyyy-MM-dd').format(focusedDay),
-                              ),
-                              addPadding: false,
-                            )));
+                    /**/
                   },
                   // 선택된 날짜를 표시하기 위한 조건
                   selectedDayPredicate: (day) {
@@ -155,7 +217,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     isTodayHighlighted: false, //오늘날짜 highlight 표시 끔
                   ),
                   eventLoader: (date) {
-                    return _events![date] ?? [];
+                    print('@#@@####');
+                    print(_events);
+                    print(date.toUtc());
+                    print(_events![date.toUtc()]);
+                    return _events![date.toUtc()] ?? [];
                   },
                   calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, foucusedDay) {
@@ -163,10 +229,47 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   }, selectedBuilder: (context, date, events) {
                     return _renderSelectedDate(date);
                   }, markerBuilder: (context, date, events) {
-                    if (events.isNotEmpty)
-                      return _renderMarkerBuilder(date, data!, events);
+                    //if (events.isNotEmpty)
+                    return _renderMarkerBuilder(date, data!, events);
                   }),
                 ),
+              ),
+            ),
+            SizedBox(
+              height: 30.0,
+            ),
+            Expanded(
+              child: ValueListenableBuilder<List<Event>>(
+                valueListenable: _selectedEvents,
+                builder: (context, value, _) {
+                  return ListView.builder(
+                    itemCount: value.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: PRIMARY_COLOR),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => PrescriptionHistoryScreen(
+                                prescription: data[0],
+                                selectedDate: DateFormat('yyyy-MM-dd')
+                                    .format(selectedDay!),
+                              ),
+                            ));
+                          },
+                          title: Text('${value[index]}'),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -238,17 +341,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(shape: BoxShape.circle, color: markerColor),
-      width: 8.0 * events.length,
+      width: 8.0,
       height: 8.0,
-      child: Center(
-        child: Text(
-          '${events.length}',
-          style: TextStyle().copyWith(
-            color: Colors.white,
-            fontSize: 12.0,
-          ),
-        ),
-      ),
     );
   }
 

@@ -4,7 +4,7 @@ import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/router/navigator.dart';
 import 'package:care_management/common/view/splash_screen.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

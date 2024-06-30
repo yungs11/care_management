@@ -1,14 +1,8 @@
-import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/component/log_card_list.dart';
-import 'package:care_management/common/component/main_card_list.dart';
 import 'package:care_management/common/component/card_title.dart';
-import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
+import 'package:care_management/common/component/log_card_list.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
-import 'package:care_management/common/model/taking_medicine_item_model.dart';
-import 'package:dio/dio.dart';
+import 'package:care_management/screen/doseLog/service/doselog_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -34,28 +28,18 @@ class _DoseLogScreenState extends ConsumerState<DoseLogScreen> {
   }
 
   Future<List<MedicationScheduleBoxModel>> getTakingList() async {
-    final dio = ref.watch(dioProvider);
+    final dService = ref.read(doselogServiceProvider);
 
-    try {
-      final resp = await dio.get('${apiIp}/plan',
-          options: Options(headers: {'accessToken': 'true'}),
-          queryParameters: {
-            'date': DateFormat('yyyy-MM-dd').format(widget.selectedDay)
-          });
-      scheduleBoxModel = resp.data['data']['plans']
+    final historyList = await dService.fetchIntakeHistory(DateFormat('yyyy-MM-dd').format(widget.selectedDay));
+
+      scheduleBoxModel = historyList
           .map<MedicationScheduleBoxModel>(
               (e) => MedicationScheduleBoxModel.fromJson(json: e))
           .toList();
 
-      //     ref.read(MedicationScheduleBoxProvider.notifier).initMedicationBoxModel(scheduleBoxModel);
-
       print(
           '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
-    } on DioException catch (e) {
-      ref.watch(dialogProvider.notifier).errorAlert(e);
-    } catch (e) {
-      print(e);
-    }
+
 
     return scheduleBoxModel;
     //medTImeList

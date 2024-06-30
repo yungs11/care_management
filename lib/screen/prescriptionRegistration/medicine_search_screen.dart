@@ -6,6 +6,7 @@ import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/timezone_box_model.dart';
 import 'package:care_management/screen/prescriptionRegistration/dosage_input_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/service/prescription_service.dart';
 import 'package:care_management/screen/search/model/medicine_info_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -95,8 +96,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
   }
 
   Widget renderSearchArea() {
-    final dio = ref.read(dioProvider);
-    //final dio = Dio();
+    final pservice = ref.read(PrescriptionServiceProvider);
 
     return Row(
       children: [
@@ -119,16 +119,11 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
         IconButton(
             onPressed: () async {
               try{
-                final resp =
-                    await dio.get('${apiIp}/medicine/search/${_controller.text}',
-                    options: Options(headers: {
-                      'accessToken': 'true',
-                    }));
-
-                  print( resp);
+                final medicineList =
+                    await pservice.fetchMedicine('${_controller.text}');
 
                 setState(() {
-                  final List<MedicineInfoModel> medicines = resp.data['data']
+                  final List<MedicineInfoModel> medicines = medicineList
                       .map<MedicineInfoModel>(
                         (item) => MedicineInfoModel.fromJson(json: item),
                   )

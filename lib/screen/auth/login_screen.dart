@@ -9,7 +9,7 @@ import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/secure_storage/secure_storage.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
 import 'package:care_management/screen/auth/renew_password_screen.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/common/component/custom_components.dart';
@@ -71,13 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             DoneButton(
               onButtonPressed: () async {
                 //id, pwd
-                final rawString = '${widget.userId}:${_textController.text}';
-
-                print(rawString);
-                Codec<String, String> stringToBase64 = utf8.fuse(base64);
-                String token = stringToBase64.encode(rawString);
-
-                Map<String, dynamic> body = {
+              Map<String, dynamic> body = {
                   "email":
                       widget.userId, //'lafin716@naver.com', //widget.userId,
                   "password":
@@ -85,10 +79,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   "auto_login": true
                 };
 
-
                 final authStatus = ref.read(authStatusProvider.notifier);
                 authStatus.logIn(body);
-
               },
               buttonText: '로그인',
             ),

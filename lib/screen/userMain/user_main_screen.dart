@@ -1,15 +1,10 @@
-import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/component/main_card_list.dart';
 import 'package:care_management/common/component/card_title.dart';
+import 'package:care_management/common/component/main_card_list.dart';
 import 'package:care_management/common/const/colors.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
-import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
-import 'package:care_management/common/model/taking_medicine_item_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
-import 'package:care_management/screen/search/calendar_screen.dart';
-import 'package:dio/dio.dart';
+import 'package:care_management/screen/calendar/calendar_screen.dart';
+import 'package:care_management/screen/userMain/service/userMain_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -22,36 +17,22 @@ final fetchDataProvider =
   final selectedDay = ref.watch(selectedDayProvider);
   List<MedicationScheduleBoxModel> scheduleBoxModel = [];
 
-  final dio = ref.watch(dioProvider);
+  final umservice = ref.read(userMainServiceProvider);
 
-  try {
-    final resp = await dio.get('${apiIp}/plan',
-        options: Options(headers: {'accessToken': 'true'}),
-        queryParameters: {
-          'date': DateFormat('yyyy-MM-dd').format(selectedDay)
-        });
+  final cardList = await umservice
+      .fetchCardList(DateFormat('yyyy-MM-dd').format(selectedDay));
 
+  scheduleBoxModel = cardList
+      .map<MedicationScheduleBoxModel>(
+          (e) => MedicationScheduleBoxModel.fromJson(json: e))
+      .toList();
 
+  ref
+      .read(MedicationScheduleBoxProvider.notifier)
+      .initMedicationBoxModel(scheduleBoxModel);
 
-    scheduleBoxModel = resp.data['data']['plans']
-        .map<MedicationScheduleBoxModel>(
-            (e) => MedicationScheduleBoxModel.fromJson(json: e))
-        .toList();
-
-    ref
-        .read(MedicationScheduleBoxProvider.notifier)
-        .initMedicationBoxModel(scheduleBoxModel);
-
-    print(
-        '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
-  } on DioException catch (e) {
-    print('-------/plan dio error--------');
-    print(e);
-    //CustomDialog.errorAlert(context, e);
-  } catch (e) {
-    print('-------/plan error--------');
-    print(e);
-  }
+  print(
+      '>>>>>>>>>>> ${scheduleBoxModel.map((e) => e.pills!.map((ek) => print(ek.pillName)))}');
 
   return scheduleBoxModel;
 });
@@ -159,7 +140,8 @@ class _UserMainScreenState extends ConsumerState<UserMainScreen> {
         dateBoxData.length,
         (index) => InkWell(
               onTap: () {
-                ref.read(selectedDayProvider.notifier).state = dateBoxData[index]['date'];
+                ref.read(selectedDayProvider.notifier).state =
+                    dateBoxData[index]['date'];
               },
               child: Container(
                 decoration: BoxDecoration(

@@ -1,8 +1,9 @@
 
 import 'package:care_management/screen/doseLog/dose_log_screen.dart';
+import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -41,7 +42,7 @@ final TABS= [
   TabInfo(
           iconImaPath: 'asset/icon/pinpaper-filled.png',
           label: '처방 내역',
-          screen: PrescriptionHistoryScreen(selectedDate: DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc()),),
+          screen: PrescriptionHistoryDetailScreen(selectedDate: DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc()),),
           addPadding: false,
           appBartitle: '처방 내역',
       ),

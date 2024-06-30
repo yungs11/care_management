@@ -3,14 +3,15 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/screen/DoseLog/dose_log_screen.dart';
+import 'package:care_management/screen/auth/service/auth_service.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
-import 'package:care_management/screen/search/calendar_screen.dart';
+import 'package:care_management/screen/calendar/calendar_screen.dart';
 import 'package:care_management/screen/auth/login_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_dosage_schedule_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
 import 'package:care_management/screen/auth/renew_password_screen.dart';
 import 'package:care_management/screen/auth/join_screen.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:care_management/common/component/custom_components.dart';
 import 'package:dio/dio.dart';
@@ -93,21 +94,14 @@ class _IdInputScreenState extends ConsumerState<IdInputScreen> {
             ),
             DoneButton(
                 onButtonPressed: () async {
-                  final dio = Dio();
-                  try {
-                    final resp =
-                        await dio.post('${apiIp}/user/check-email', data: {
-                      'email': textController.text,
-                    });
-
-                    //print(resp.data['code']);
-                    if (resp.data['code'] == 1100) {
+                  final authService = ref.read(authServiceProvider);
+                  final resp = await authService.checkUser(textController.text);
+                    if (resp == 1100) {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => LoginScreen(
                             userId: textController.text,
                           )));
-                    }else if(resp.data['code'] == 1120 || resp.data['code'] == 1110 ){
-
+                    }else if(resp == 1120 || resp == 1110 ){
                       //가입이 가능한 상태(중복 이메일 없음)
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => SignUpScreen(
@@ -115,17 +109,6 @@ class _IdInputScreenState extends ConsumerState<IdInputScreen> {
                           )));
 
                     }
-                  } on DioException catch (e) {
-                    print('----------------');
-                    print(e.response);
-                    // 가입이 불가능한 상태(중복 이메일이 있음 -> 로그인페이지로 이동)
-                      // 500 아닌 경우 오류 메시지
-                      return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['message']);
-
-
-                  } catch (e) {
-                    return ref.watch(dialogProvider.notifier).showAlert('에러 발생');
-                  }
                 },
                 buttonText: '확인'),
            /* Column(

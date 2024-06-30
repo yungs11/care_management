@@ -1,224 +1,159 @@
+import 'package:care_management/common/component/custom_components.dart';
 import 'package:care_management/common/component/dialog.dart';
-import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
-import 'package:care_management/common/model/medication_schedule_box_model.dart';
-import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/prescription_model.dart';
-import 'package:care_management/common/model/taking_medicine_item_model.dart';
-import 'package:care_management/common/model/timezone_box_model.dart';
-import 'package:care_management/common/util/formatUtil.dart';
+import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
+import 'package:care_management/screen/prescriptionHistory/service/history_service.dart';
+import 'package:care_management/screen/prescriptionRegistration/prescription_bag_detail_screen.dart';
+import 'package:care_management/screen/calendar/calendar_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class PrescriptionHistoryScreen extends ConsumerStatefulWidget {
-
+  final PrescriptionModel prescription;
   final String selectedDate;
-
-  const PrescriptionHistoryScreen({super.key, required this.selectedDate});
+  const PrescriptionHistoryScreen(
+      {super.key, required this.prescription, required this.selectedDate});
 
   @override
-  ConsumerState<PrescriptionHistoryScreen> createState() => _PrescriptionHistoryScreenState();
+  ConsumerState<PrescriptionHistoryScreen> createState() =>
+      _PrescriptionHistoryScreenState();
 }
 
-class _PrescriptionHistoryScreenState extends ConsumerState<PrescriptionHistoryScreen> {
-  late Future<List<TimezoneBoxModel>> _future;
+class _PrescriptionHistoryScreenState
+    extends ConsumerState<PrescriptionHistoryScreen> {
+  final TextEditingController _hospitalController = TextEditingController();
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _finishDateController = TextEditingController();
+  TextEditingController _takeDaysController = TextEditingController();
+  late Future<List<PrescriptionModel>> _future;
 
   @override
   void didChangeDependencies() {
-    // TODO: implement initState
+    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-
-    _future =fetchPrescriptionData();
+    _hospitalController.text = widget.prescription.prescriptionName!;
+    _startDateController.text =
+        DateFormat('yyyy-MM-dd').format(widget.prescription.startedAt!);
+    _finishDateController.text =
+        DateFormat('yyyy-MM-dd').format(widget.prescription.finishedAt!);
+    _takeDaysController.text = widget.prescription.takeDays!.toString();
   }
-  Future<List<TimezoneBoxModel>> fetchPrescriptionData() async {
-    print('-------fetchPrescriptionData------- ${widget.selectedDate}');
 
-    final dio = ref.watch(dioProvider);
-    List<TimezoneBoxModel> timezoneList = [];
-   /* PrescriptionModel prescription = PrescriptionModel(
-      prescriptionName: '',
-      hospitalName: '',
-      startedAt: DateTime(0),
-      takeDays: 0,
-      items: [],
-    );
-    ;
-*/
+  @override
+  void dispose() {
+    print('----Prescrition detail dispose------');
 
-
-    try {
-      /*final resp = await dio.get('${apiIp}/prescription',
-          options: Options(headers: {'accessToken': 'true'}),
-          queryParameters: {
-            'date': widget.selectedDate,
-          });
-
-      var prescriptions = resp.data['data']
-          .map<PrescriptionModel>((e) => PrescriptionModel(
-        prescriptionName: e['name'],
-        hospitalName: e['hospital'],
-        startedAt: DateTime.parse(e['started_at']),
-
-        takeDays: e['take_days'],
-
-        //items: e['prescription_items'],
-      ))
-          .toList();
-
-      if (prescriptions.isNotEmpty) {
-        prescription = prescriptions.first;
-      }
-
-      print('#####1# ${prescription}');
-*/
-      final plan_resp = await dio.get('${apiIp}/plan',
-          options: Options(headers: {'accessToken': 'true'}),
-          queryParameters: {
-            'date': widget.selectedDate,
-          });
-
-      print('######2 ${plan_resp}');
-
-     timezoneList = plan_resp.data['data']['plans']
-          .map<TimezoneBoxModel>((e) => TimezoneBoxModel(
-          timezoneId: e['timezone_id'],
-          timezoneTitle: '${e['plan_name']}',
-          medicines: e['pills']
-              .map<MedicineItemModel>(
-                (item) => MedicineItemModel.fromJson(json: item),
-          )
-              .toList()))
-          .toList();
-
-      print('#####1# ${timezoneList}');
-
-
-      //prescription = prescription.copyWith(items: timezoneList);
-    } on DioException catch (e) {
-      print(e);
-      ref.watch(dialogProvider.notifier).errorAlert(e);
-    } catch (e) {
-      print(e);
-    }
-
-    return timezoneList;
-    //medTImeList
+    // TODO: implement dispose
+    _hospitalController.dispose();
+    _startDateController.dispose();
+    _finishDateController.dispose();
+    _takeDaysController.dispose();
+    super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
-    print('-------PrescriptionHistoryScreen-------');
+    print('----Prescrition detail -build------');
 
+    return MainLayout(
+      appBartitle: '약봉투',
+      addPadding: true,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CustomTextField(
+            labelText: '병원',
+            controller: _hospitalController,
+          ),
+          SizedBox(
+            height: 30.0,
+          ),
+          CustomTextField(
+            labelText: '시작일자',
+            controller: _startDateController,
+          ),
+          SizedBox(
+            height: 30.0,
+          ),
+          CustomTextField(
+            labelText: '종료일자',
+            controller: _finishDateController,
+          ),
+          SizedBox(
+            height: 30.0,
+          ),
+          CustomTextField(
+            labelText: '복용일수',
+            controller: _takeDaysController,
+            isNumber: true,
+            suffixText: '일 분',
+          ),
+          SizedBox(
+            height: 60.0,
+          ),
+          Row(children: [
+            ElevatedButton(
+                onPressed: () async {
+                  final phService = ref.read(prescrptionHistoryServiceProvider);
+                  final resp = await phService.deletePrescription(
+                    '${widget.prescription.prescriptionId}',
+                  );
 
-    return FutureBuilder<List<TimezoneBoxModel>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator()); // 로딩 인디케이터 표시
-          } else if (snapshot.hasError) {
-            return Center(
-                child: Text('오류가 발생하였습니다: ${snapshot.error}')); // 오류 메시지 표시
-          } else {
-            return SingleChildScrollView(
-                child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: SizedBox(
-                            width: 140.0,
-                            child: renderSelectedDate(widget.selectedDate))),
-                    ...snapshot.data!
-                        .map((timezoneItem) => Column(
-                              children: [
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                renderMedicinePerTImeBox(timezoneItem),
-                              ],
-                            ))
-                        .toList(),
-                  ]),
-            )); // 데이터 표시
-          }
-        });
-  }
-}
-
-Widget renderSelectedDate(String selectedDate) {
-  return Container(
-    decoration: BoxDecoration(
-      border: Border.all(color: PRIMARY_COLOR, width: 3.0),
-      borderRadius: BorderRadius.circular(15.0),
-    ),
-    //padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-    height: 45.0,
-    child: Center(
-      child: Text(
-        '${selectedDate.substring(0,4)} / ${selectedDate.substring(5,7)} / ${selectedDate.substring(8,10)}',
-        style: const TextStyle(fontWeight: FontWeight.w500),
+                  print(resp);
+                  /*
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => CalendarScreen(
+                          searchDay: DateTime.parse(widget.selectedDate),
+                        )));*/
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // 테마에 맞는 버튼 색상
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Color(0x66000000)),
+                      borderRadius: BorderRadius.circular(5.0)),
+                  padding: const EdgeInsets.all(25.0),
+                ),
+                child: Text(
+                  '약봉투 삭제',
+                )),
+            SizedBox(
+              width: 15,
+            ),
+            Expanded(
+                flex: 1,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => MainLayout(
+                          appBartitle: '처방 내역',
+                          body: PrescriptionHistoryDetailScreen(
+                              selectedDate: widget.selectedDate),
+                          addPadding: false,
+                        ),
+                      ));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white, // 테마에 맞는 버튼 색상
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          side: BorderSide(color: Color(0x66000000)),
+                          borderRadius: BorderRadius.circular(5.0)),
+                      padding: const EdgeInsets.all(25.0),
+                    ),
+                    child: Text(
+                      '처방약 보기',
+                    ))),
+          ]),
+        ],
       ),
-    ),
-  );
-  ;
-}
-
-Widget renderMedicinePerTImeBox(TimezoneBoxModel timezoneItem) {
-  TextStyle headerFontstyle = const TextStyle(
-      color: PRIMARY_COLOR, fontWeight: FontWeight.w500, fontSize: 12.0);
-
-  print(timezoneItem);
-
-  return DataTable(
-    columnSpacing: 10.0,
-    headingRowHeight: 30.0,
-    horizontalMargin: 0,
-    columns: <DataColumn>[
-      DataColumn(
-          label: Text(timezoneItem.timezoneTitle!,
-              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600))),
-      //DataColumn(label: Text('')),
-      DataColumn(label: Text('1회분량', style: headerFontstyle)),
-      DataColumn(label: Text('남은양', style: headerFontstyle)),
-      DataColumn(label: Text('처방량', style: headerFontstyle)),
-    ],
-    rows: timezoneItem.medicines!.map((e) => renderPillItem(e)).toList(),
-  );
-}
-
-DataRow renderPillItem(MedicineItemModel pill) {
-  //_textController.text= pill['takingCount'].toString() ?? '';
-
-  return DataRow(
-    cells: <DataCell>[
-      //  DataCell(Container(width: 50.0, child: renderPillTakingYNIcon(pill))),
-      DataCell(Container(width: 200.0, child: renderPillName(pill))),
-      DataCell(Container(width: 40.0, child: Text('${pill.takeAmount.toString()}개'))),
-      DataCell(Container(width: 40.0, child: Text('${pill.remainAmount.toString()}일분'))),
-      DataCell(Container(width: 40.0, child: Text('${pill.totalAmount.toString()}일분'))),
-    ],
-  );
-}
-
-Widget renderPillTakingYNIcon(pill) {
-  return pill.takingYN
-      ? Icon(
-          Icons.circle_outlined,
-          color: PRIMARY_COLOR,
-          size: 10.0,
-        )
-      : Icon(
-          Icons.close,
-          color: Colors.indigo,
-          size: 10.0,
-        );
-}
-
-Widget renderPillName(pill) {
-  return Text(pill.name,
-      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0));
+    );
+  }
 }

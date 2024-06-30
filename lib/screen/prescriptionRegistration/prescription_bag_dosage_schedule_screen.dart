@@ -1,23 +1,17 @@
-import 'package:care_management/common/component/custom_components.dart';
-import 'package:care_management/common/component/dialog.dart';
 import 'package:care_management/common/component/dosage_scedule_button.dart';
-import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/timezone_box_model.dart';
 import 'package:care_management/common/model/timezone_model.dart';
-import 'package:care_management/screen/prescriptionRegistration/dosage_input_screen.dart';
-import 'package:care_management/screen/search/medicine_search_dialog.dart';
 import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/service/prescription_service.dart';
+import 'package:care_management/screen/search/medicine_search_dialog.dart';
+import 'package:care_management/screen/timezone_manage/service/timezone_service.dart';
 import 'package:care_management/screen/timezone_manage/timezone_manage_input_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PrescriptionBagDosageSceduleScreen extends ConsumerStatefulWidget {
   const PrescriptionBagDosageSceduleScreen({super.key});
-
-
 
   @override
   ConsumerState<PrescriptionBagDosageSceduleScreen> createState() =>
@@ -32,9 +26,7 @@ class _PrescriptionBagDosageSceduleScreenState
     // TODO: implement initState
     super.initState();
 
-    Future.microtask(() =>
-        getTimezonList()
-    );
+    Future.microtask(() => getTimezonList());
   }
 
   @override
@@ -45,51 +37,30 @@ class _PrescriptionBagDosageSceduleScreenState
     super.dispose();
   }
 
-
   void getTimezonList() async {
-    final dio = ref.watch(dioProvider);
 
+    final timezoneService = ref.read(timezoneServiceProvider);
 
-    try {
-      final resp = await dio.get('${apiIp}/timezone',
-          options: Options(headers: {'accessToken': 'true'}));
+    final timezoneList = await timezoneService.getTimezone();
+    setState(() {
+      print('>>>>>>>>dosagescreen >>. $timezoneList');
 
-      setState(() {
-/*
-        timezoneModel = resp.data['data']
-            .map<TimezoneModel>((e) => TimezoneModel(
+      for (Map e in timezoneList) {
+        timezoneModel.add(TimezoneModel(
             id: e['id'],
             name: e['name'],
             hour: e['hour'],
             midday: e['midday'],
             minute: e['minute'],
             controller: null,
-            title: '${e['name']} (${e['hour']}:${e['minute']})'))
-            .toList();
-*/
+            title: '${e['name']} (${e['hour']}:${e['minute']})'));
 
-        for(Map e in resp.data['data']){
-            timezoneModel.add(TimezoneModel(
-                id: e['id'],
-                name: e['name'],
-                hour: e['hour'],
-                midday: e['midday'],
-                minute: e['minute'],
-                controller: null,
-                title: '${e['name']} (${e['hour']}:${e['minute']})'));
+        ref.read(timezoneProvider.notifier).addTimezone(TimezoneBoxModel(
+            timezoneId: e['id'],
+            timezoneTitle: '${e['name']} (${e['hour']}:${e['minute']})'));
+      }
+    });
 
-          ref.read(timezoneProvider.notifier).addTimezone(
-              TimezoneBoxModel(timezoneId:e['id'], timezoneTitle: '${e['name']} (${e['hour']}:${e['minute']})'));
-        }
-
-
-      });
-
-    } on DioException catch (e) {
-      ref.watch(dialogProvider.notifier).errorAlert(e);
-    } catch (e) {
-      print(e);
-    }
     //medTImeList
   }
 
@@ -109,8 +80,8 @@ class _PrescriptionBagDosageSceduleScreenState
             children: [
               TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => TimezoneInputScreen()));
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (_) => TimezoneInputScreen()));
                   },
                   child: Text(
                     '+ 복약 시간대 추가',
@@ -120,18 +91,27 @@ class _PrescriptionBagDosageSceduleScreenState
                   )),
             ],
           ),
-          ...timezoneModel.asMap().entries.map((timezone) => DosageScheduleButton(
-            scheduleTitle: timezone.value.title,
-            onPressed: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => MedicineSearchScreen(timezoneId: timezone.value.id,timezoneTitle: timezone.value.title,)));
-            },
-            isBoxSelected: timezone.key == 0 ? true : false,
-          ),).toList(),
+          ...timezoneModel
+              .asMap()
+              .entries
+              .map(
+                (timezone) => DosageScheduleButton(
+                  scheduleTitle: timezone.value.title,
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => MedicineSearchScreen(
+                              timezoneId: timezone.value.id,
+                              timezoneTitle: timezone.value.title,
+                            )));
+                  },
+                  isBoxSelected: timezone.key == 0 ? true : false,
+                ),
+              )
+              .toList(),
           SizedBox(
             height: 20.0,
           ),
-         /* DoneButton(
+          /* DoneButton(
               onButtonPressed: () {
                 Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => DosageInputScreen(toAddigMedicine: null,)));

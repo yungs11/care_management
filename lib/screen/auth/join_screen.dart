@@ -4,6 +4,7 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/join_layout.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
+import 'package:care_management/screen/auth/service/auth_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,32 +90,37 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               onButtonPressed: () async {
                 // if (_passwordCntrler.text != _passwordCntrler2.text) {}
 
-                try {
-                  print( _nickNameCntrler.text);
-                  print(widget.userId);
-                  print(_passwordCntrler.text);
+                final authService = ref.watch(authServiceProvider);
+                final joinData = {
+                  'name': _nickNameCntrler.text,
+                  'email': widget.userId,
+                  'password': _passwordCntrler.text
+                };
 
-                  final resp = await dio.post('${apiIp}/auth/signup', data: {
-                    'name': _nickNameCntrler.text,
-                    'email': widget.userId,
-                    'password': _passwordCntrler.text
-                  });
+                final success = await authService.join(joinData);
 
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => IdInputScreen()),
-                          (route) => false);
-
-                } on DioException catch (e) {
-
-                  print(e.response);
-
-                  if(e.response!.data['errors'] != null){
-                    return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['errors'].values.toString().replaceAll(RegExp(r'\(|\)'),''));
-                  }else{
-                    return ref.watch(dialogProvider.notifier).showAlert(e.response!.data['message']);
-                  }
-                }catch(e){
-                  print(e);
+                if (success) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("환영합니다 :)"),
+                        content: Text("가입되었습니다!"),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text("확인"),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // 알림창 닫기
+                              Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (_) => IdInputScreen()),
+                                  (route) => false); // 로그인 화면으로 이동
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 }
               },
               buttonText: '가입하기',

@@ -5,13 +5,12 @@ import 'package:care_management/common/const/colors.dart';
 import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
+import 'package:care_management/common/model/medicine_item_model.dart';
 import 'package:care_management/common/model/prescription_model.dart';
 import 'package:care_management/common/model/timezone_box_model.dart';
-import 'package:care_management/common/model/medicine_item_model.dart';
-import 'package:care_management/common/util/errorUtil.dart';
-import 'package:care_management/screen/prescriptionRegistration/medicine_search_screen.dart';
+import 'package:care_management/screen/prescriptionRegistration/service/prescription_service.dart';
 import 'package:care_management/screen/search/medicine_search_dialog.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,7 +43,6 @@ class _PrescriptionBagDosageSceduleResultScreenState
   Widget build(BuildContext context) {
     print('-------PrescriptionBagDosageSceduleResultScreen build-------');
 
-
     final List<TimezoneBoxModel> timezoneList = ref.read(timezoneProvider);
 
     /* Map<int, TimezonBoxModel> medicinesPerBox =
@@ -61,8 +59,8 @@ class _PrescriptionBagDosageSceduleResultScreenState
     boxes.map((e) => print('ㅇㄹㅇㄹ ${e}'));
 
     print('###########');
-    print(selectedBoxId );
-    print(targetBoxId );
+    print(selectedBoxId);
+    print(targetBoxId);
 
     return MainLayout(
       appBartitle: '복약 계획',
@@ -93,7 +91,8 @@ class _PrescriptionBagDosageSceduleResultScreenState
       String timezoneTitle,
       List<TimezoneBoxModel> copiedTimezoneList,
       List<MedicineItemModel> medicines) {
-    print('--------renderMedicineBox ${copiedTimezoneList[0].medicines!.length} ${copiedTimezoneList[1].medicines!.length}');
+    print(
+        '--------renderMedicineBox ${copiedTimezoneList[0].medicines!.length} ${copiedTimezoneList[1].medicines!.length}');
     //copiedTimezoneList.map((e) => print('${e.timezoneTitle} ${e.medicines}'));
 
     return InkWell(
@@ -114,7 +113,7 @@ class _PrescriptionBagDosageSceduleResultScreenState
               //특정 타임존에 medicineList 업데이트
               ref
                   .read(timezoneProvider.notifier)
-                  .updateMedicineItem(targetBoxId!,selectedMedicines);
+                  .updateMedicineItem(targetBoxId!, selectedMedicines);
 
               isCopyMode = false;
               selectedBoxId = null;
@@ -195,10 +194,9 @@ class _PrescriptionBagDosageSceduleResultScreenState
                 flex: 1,
                 child: DoneButton(
                     onButtonPressed: () async {
-                      final timezoneList = ref.watch(timezoneProvider);
+                      final timezoneList = ref.read(timezoneProvider);
 
-
-                    //처방전에 timezoneList 업데이트
+                      //처방전에 timezoneList 업데이트
                       ref
                           .read(prescriptionProvider.notifier)
                           .updateFilteredItems(timezoneList);
@@ -206,15 +204,15 @@ class _PrescriptionBagDosageSceduleResultScreenState
                       final prescription = ref.read(prescriptionProvider);
 
                       print('prescription >>>> ');
-                      final dio = ref.watch(dioProvider);
+                      final presciptionService =
+                          ref.read(PrescriptionServiceProvider);
 
                       print(prescription.toJson());
 
-                      try {
-                        final resp = await dio.post('${apiIp}/plan',
-                            options: Options(headers: {'accessToken': 'true'}),
-                            data: prescription.toJson());
+                      final success = await presciptionService
+                          .insertPrescription(prescription.toJson());
 
+                      if (success) {
                         Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => MainLayout(
@@ -224,11 +222,6 @@ class _PrescriptionBagDosageSceduleResultScreenState
                               ),
                             ),
                             (route) => false);
-                      } on DioException catch (e) {
-                        ref.watch(dialogProvider.notifier).errorAlert(e);
-                      } catch (e) {
-                        print('-------dio 아님---------');
-                        print(e);
                       }
                     },
                     buttonText: '완료'),

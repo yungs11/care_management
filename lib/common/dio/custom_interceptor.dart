@@ -1,28 +1,8 @@
 import 'package:care_management/common/const/AuthStatus.dart';
 import 'package:care_management/common/const/data.dart';
-import 'package:care_management/common/router/navigator.dart';
-import 'package:care_management/common/secure_storage/secure_storage.dart';
-import 'package:care_management/screen/auth/id_input_screen.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-
-final dioProvider = Provider((ref) {
-  final dio = Dio();
-
-  final storage =
-      ref.watch(secureStorageProvider); //ref를 사용해서 또다른 provider 가져오기
-
-  dio.interceptors.add(CustomInterceptor(
-      storage: storage, ref: ref));
-
-  return dio;
-});
-//
-//
-//
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CustomInterceptor extends Interceptor {
   final FlutterSecureStorage storage;

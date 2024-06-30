@@ -6,6 +6,7 @@ import 'package:care_management/common/const/data.dart';
 import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/timezone_model.dart';
+import 'package:care_management/screen/timezone_manage/service/timezone_service.dart';
 import 'package:care_management/screen/timezone_manage/timezone_manage_input_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,7 @@ class TimezoneScreen extends ConsumerStatefulWidget {
   TimezoneScreen({super.key});
 
   @override
-  ConsumerState<TimezoneScreen> createState() =>
-      _MedTimeManageScreenState();
+  ConsumerState<TimezoneScreen> createState() => _MedTimeManageScreenState();
 }
 
 class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
@@ -36,8 +36,8 @@ class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
     super.initState();
 
     Future.microtask(() => {
-      getMedTimeList(),
-    });
+          getMedTimeList(),
+        });
   }
 
   @override
@@ -51,34 +51,27 @@ class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
   }
 
   void getMedTimeList() async {
-    final dio = ref.watch(dioProvider);
+    final timezoneService = ref.read(timezoneServiceProvider);
 
-    try {
-      final resp = await dio.get('${apiIp}/timezone',
-          options: Options(headers: {'accessToken': 'true'}));
+    final timezoneList = await timezoneService.getTimezone();
 
-      setState(() {
-        timezoneModel = resp.data['data']
-            .map<TimezoneModel>((e) => TimezoneModel(
-                id: e['id'],
-                name: e['name'],
-                hour: e['hour'],
-                midday: e['midday'],
-                minute: e['minute'],
-                controller: TextEditingController(),
-                title: '${e['hour']}:${e['minute']}'))
-            .toList();
+    setState(() {
+      timezoneModel = timezoneList
+          .map<TimezoneModel>((e) => TimezoneModel(
+              id: e['id'],
+              name: e['name'],
+              hour: e['hour'],
+              midday: e['midday'],
+              minute: e['minute'],
+              controller: TextEditingController(),
+              title: '${e['hour']}:${e['minute']}'))
+          .toList();
 
-        for (TimezoneModel medtime in timezoneModel) {
-          medtime.controller!.text = '${medtime.title}';
-        }
-      });
+      for (TimezoneModel medtime in timezoneModel) {
+        medtime.controller!.text = '${medtime.title}';
+      }
+    });
 
-    } on DioException catch (e) {
-      ref.watch(dialogProvider.notifier).errorAlert(e);
-    } catch (e) {
-      print(e);
-    }
     //medTImeList
   }
 
@@ -187,8 +180,8 @@ class _MedTimeManageScreenState extends ConsumerState<TimezoneScreen> {
   Widget _renderFloatingActionButton() {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const TimezoneInputScreen()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TimezoneInputScreen()));
       },
       backgroundColor: PRIMARY_COLOR,
       foregroundColor: Colors.white,

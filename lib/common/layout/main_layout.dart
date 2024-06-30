@@ -2,7 +2,7 @@ import 'package:care_management/common/const/tabs.dart';
 import 'package:care_management/screen/drawer/main_drawer.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainLayout extends StatefulWidget {

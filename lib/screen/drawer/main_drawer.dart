@@ -8,6 +8,7 @@ import 'package:care_management/common/secure_storage/secure_storage.dart';
 import 'package:care_management/common/util/errorUtil.dart';
 import 'package:care_management/screen/doseLog/dose_log_screen.dart';
 import 'package:care_management/screen/auth/id_input_screen.dart';
+import 'package:care_management/screen/prescriptionHistory/prescription_his_detail_screen.dart';
 import 'package:care_management/screen/timezone_manage/timezone_manage_screen.dart';
 import 'package:care_management/screen/prescriptionHistory/prescription_history_screen.dart';
 import 'package:care_management/screen/prescriptionRegistration/prescription_bag_input_screen.dart';
@@ -50,7 +51,7 @@ class _MainDrawerState extends ConsumerState<MainDrawer> {
       ScreenModel(
           builder: (_) => MainLayout(
                 appBartitle: '처방 내역',
-                body: PrescriptionHistoryScreen(selectedDate: DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc()),),
+                body: PrescriptionHistoryDetailScreen(selectedDate: DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc()),),
                 addPadding: false,
               ),
           name: '처방 내역'),

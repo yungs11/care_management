@@ -5,6 +5,7 @@ import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/layout/main_layout.dart';
 import 'package:care_management/common/model/timezone_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
+import 'package:care_management/screen/timezone_manage/service/timezone_service.dart';
 import 'package:care_management/screen/timezone_manage/timezone_manage_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -95,24 +96,21 @@ class _MedTimeManageInputScreenState
               ? DoneButton(
                   buttonText: '등록',
                   onButtonPressed: () async {
-                    final dio = ref.watch(dioProvider);
-                    try {
-                      final resp = await dio.post('${apiIp}/timezone',
-                          options: Options(headers: {'accessToken': 'true'}),
-                          data: {
-                            'name': _textController.text,
-                            'midday': FormatUtil.parseStringAMPM(_selectedTime),
-                            'hour': _selectedTime.substring(0, 2),
-                            'minute': _selectedTime.substring(3, 5),
-                            'use_alert': false,
-                          });
+                    final timezoneService = ref.watch(timezoneServiceProvider);
 
-                      Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => TimezoneScreen()),
-                          (route) => false);
-                    } on DioException catch (e) {
-                      ref.watch(dialogProvider.notifier).errorAlert(e);
-                    }
+                    Map<String, dynamic> timezoneData = {
+                      'name': _textController.text,
+                      'midday': FormatUtil.parseStringAMPM(_selectedTime),
+                      'hour': _selectedTime.substring(0, 2),
+                      'minute': _selectedTime.substring(3, 5),
+                      'use_alert': false,
+                    };
+
+                    await timezoneService.insertTimezone(timezoneData);
+                    Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => TimezoneScreen()),
+                        (route) => false);
+
                     //medTImeList
                   },
                 )
@@ -125,21 +123,17 @@ class _MedTimeManageInputScreenState
                           '삭제',
                         ),
                         onPressed: () async {
-                          final dio = ref.watch(dioProvider);
-                          try {
-                            final resp = await dio.delete(
-                              '${apiIp}/timezone/${widget.editingMedTimeData!.id}',
-                              options:
-                                  Options(headers: {'accessToken': 'true'}),
-                            );
+                          final timezoneService =
+                          ref.watch(timezoneServiceProvider);
+
+                          String deleteId = widget.editingMedTimeData!.id;
+
+                          await timezoneService.deleteTimezone(deleteId);
 
                             Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
                                     builder: (_) => TimezoneScreen()),
                                 (route) => false);
-                          } on DioException catch (e) {
-                            ref.watch(dialogProvider.notifier).errorAlert(e);
-                          }
                           //medTImeList
                         },
                         style: ElevatedButton.styleFrom(
@@ -153,34 +147,33 @@ class _MedTimeManageInputScreenState
                         ),
                       ),
                     ),
-                    SizedBox(width: 10.0,),
+                    SizedBox(
+                      width: 10.0,
+                    ),
                     Expanded(
                       flex: 1,
                       child: DoneButton(
                         buttonText: '수정',
                         onButtonPressed: () async {
-                          final dio = ref.watch(dioProvider);
-                          try {
-                            final resp = await dio.patch('${apiIp}/timezone',
-                                options:
-                                    Options(headers: {'accessToken': 'true'}),
-                                data: {
-                                  'id': widget.editingMedTimeData!.id,
-                                  'name': _textController.text,
-                                  'midday':
-                                      FormatUtil.parseStringAMPM(_selectedTime),
-                                  'hour': _selectedTime.substring(0, 2),
-                                  'minute': _selectedTime.substring(3, 5),
-                                  'use_alert': false,
-                                });
+                          final timezoneService =
+                              ref.watch(timezoneServiceProvider);
 
-                            Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => TimezoneScreen()),
-                                (route) => false);
-                          } on DioException catch (e) {
-                            ref.watch(dialogProvider.notifier).errorAlert(e);
-                          }
+                          Map<String, dynamic> timezoneData = {
+                            'id': widget.editingMedTimeData!.id,
+                            'name': _textController.text,
+                            'midday': FormatUtil.parseStringAMPM(_selectedTime),
+                            'hour': _selectedTime.substring(0, 2),
+                            'minute': _selectedTime.substring(3, 5),
+                            'use_alert': false,
+                          };
+
+                          await timezoneService.updateTimezone(timezoneData);
+
+                          Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (_) => TimezoneScreen()),
+                              (route) => false);
+
                           //medTImeList
                         },
                       ),

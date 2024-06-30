@@ -10,7 +10,6 @@ final dialogProvider = StateNotifierProvider<DialogStateNotifier, bool>((ref) {
   return DialogStateNotifier(ref);
 });
 
-
 // Dialog 상태를 관리할 StateNotifier
 class DialogStateNotifier extends StateNotifier<bool> {
   Ref ref;
@@ -18,7 +17,6 @@ class DialogStateNotifier extends StateNotifier<bool> {
 
   //void showDialog() => state = true;
   //void hideDialog() => state = false;
-
 
   Future<void> showAlert(String content) async {
     final navigatorKey = ref.watch(navigatorKeyProvider);
@@ -28,10 +26,14 @@ class DialogStateNotifier extends StateNotifier<bool> {
       //barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          // title: Text("확인이 필요합니다"),
           content: Text(content),
           actions: <Widget>[
             TextButton(
-              child: const Text('확인',style: TextStyle(color: PRIMARY_COLOR),),
+              child: const Text(
+                '확인',
+                style: TextStyle(color: PRIMARY_COLOR),
+              ),
               onPressed: () {
                 Navigator.of(navigatorKey.currentState!.context).pop();
               },
@@ -42,22 +44,29 @@ class DialogStateNotifier extends StateNotifier<bool> {
     );
   }
 
-  errorAlert(DioException e){
+  errorAlert(dynamic e) {
     print(e);
-    print(e.response);
-    print(e.response!.data['errors']);
-    if (e.response!.data['errors'].isNotEmpty) {
-      return showAlert(
-          e.response!.data['errors'].values
-              .toString()
-              .replaceAll(RegExp(r'\(|\)'), ''));
-    } else {
-      return showAlert(
-          e.response!.data['message']);
+    print(e.runtimeType);
+
+    if (e.runtimeType == DioException) {
+      e = e.response;
+      print('여기탔어?>>>> $e');
+    }
+
+    print(e.data['errors']);
+
+    if (e.data['errors'] != null) {
+      if (e.data['errors'].isNotEmpty) // {}이 아닌지 확인
+        return showAlert(e.data['errors'].toString());
+    }
+
+    if (e.data['message'] != null) {
+      if (e.data['message'].isNotEmpty)
+        return showAlert(e.data['message'].replaceAll(RegExp(r'\(|\)'), ''));
     }
   }
 
-  errorExceptionAlert(Object e){
+  errorExceptionAlert(Object e) {
     print('####');
     print(e);
     //print(e.response);
@@ -74,5 +83,3 @@ class DialogStateNotifier extends StateNotifier<bool> {
     }*/
   }
 }
-
-

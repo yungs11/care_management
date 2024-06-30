@@ -5,7 +5,8 @@ import 'package:care_management/common/dio/dio.dart';
 import 'package:care_management/common/model/medication_schedule_box_model.dart';
 import 'package:care_management/common/model/taking_medicine_item_model.dart';
 import 'package:care_management/common/util/formatUtil.dart';
-import 'package:care_management/screen/user_main_screen.dart';
+import 'package:care_management/screen/userMain/service/userMain_service.dart';
+import 'package:care_management/screen/userMain/user_main_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,35 +43,31 @@ class MainCardList extends ConsumerStatefulWidget {
 class _MainCardListState extends ConsumerState<MainCardList> {
   String? dayOrNight;
 
+
   @override
   void dispose() {
     // TODO: implement dispose
-    for (TakingMedicineItem medicine in widget.medicineList) {
+    /*for (TakingMedicineItem medicine in widget.medicineList) {
+      if(medicine.controller != null)
       medicine.controller!.dispose();
-    }
+    }*/
     super.dispose();
   }
 
   void _updatetakeAmount(TakingMedicineItem pill, double value) async {
-    final dio = ref.watch(dioProvider);
-    try {
-      final resp = await dio.patch('${apiIp}/plan/item/takeamount',
-          options: Options(headers: {'accessToken': 'true'}),
-          data: {
-            'prescription_item_id': pill.prescriptionItemId,
-            'take_amount': value,
-          });
+    final umService = ref.read(userMainServiceProvider);
+    final success = await umService.updateTakeAmount(data: {
+      'prescription_item_id': pill.prescriptionItemId,
+      'take_amount': value,
+    });
 
-      ref.refresh(widget.onReloadRequest!);
-    } on DioException catch (e) {
-      ref.watch(dialogProvider.notifier).errorAlert(e);
-    } catch (e) {
-      print(e);
-    }
+    if (success) ref.refresh(widget.onReloadRequest!);
   }
 
   @override
   Widget build(BuildContext context) {
+
+
     return SizedBox(
       child: Container(
         child: renderExpansionCard(widget.medicineList),
@@ -114,26 +111,19 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                     DateFormat('yyyy-MM-dd').format(widget.selectedDay);
 
                 if (today != formatedSelectedDay) {
-                  ref.watch(dialogProvider.notifier).showAlert('변경은 당일만 가능합니다.');
+                  ref
+                      .watch(dialogProvider.notifier)
+                      .showAlert('변경은 당일만 가능합니다.');
                   return;
                 }
-                final dio = ref.watch(dioProvider);
+                final umService = ref.watch(userMainServiceProvider);
 
-                try {
-                  final resp = await dio.post('${apiIp}/plan/take',
-                      options: Options(headers: {'accessToken': 'true'}),
-                      data: {
-                        'target_date': today,
-                        'timezone_id': timingId,
-                      });
+                final success = await umService.changeTimezoneTakeStatus(data: {
+                  'target_date': today,
+                  'timezone_id': timingId,
+                });
 
-                  print(resp);
-                  ref.refresh(widget.onReloadRequest!);
-                } on DioException catch (e) {
-                  ref.watch(dialogProvider.notifier).errorAlert(e);
-                } catch (e) {
-                  print(e);
-                }
+                if (success) ref.refresh(widget.onReloadRequest!);
               },
               icon: Icon(
                 Icons.circle_outlined,
@@ -199,37 +189,15 @@ class _MainCardListState extends ConsumerState<MainCardList> {
               return;
             }
 
-
-
-            final dio = ref.watch(dioProvider);
-
-            try {
-              await dio.post('${apiIp}/plan/take/pill',
-                  options: Options(headers: {'accessToken': 'true'}),
-                  data: {
-                    'pill_id': pill.takeHistoryItemId,
-                  });
-
-              print('take처리!!!!');
-              print(pill.takeHistoryItemId);
-
-              ref.refresh(widget.onReloadRequest!);
-
-              /*
-            setState(() {
-              final now = DateTime.now().toLocal();
-              pill.takeStatus = !pill.takeStatus;
-              if (pill.takeStatus) {
-                pill.takingTime = DateTime.now();
-              } else {
-                pill.takingTime = DateTime(0);
-              }
+            final umService = ref.read(userMainServiceProvider);
+            final success = await umService.changePillTakeStatus(data: {
+              'pill_id': pill.takeHistoryItemId,
             });
-                    }
-                  });  */
-            } on DioException catch (e) {
-              ref.watch(dialogProvider.notifier).errorAlert(e);
-            } catch (e) {}
+
+            print('take처리!!!!');
+            print(pill.takeHistoryItemId);
+
+            if (success) ref.refresh(widget.onReloadRequest!);
           },
           icon: Icon(
             Icons.circle_outlined,
@@ -287,9 +255,10 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
-
-                if(pill.takeStatus){
-                  ref.watch(dialogProvider.notifier).showAlert('복용상태를 취소 후 변경해주세요.');
+                if (pill.takeStatus) {
+                  ref
+                      .watch(dialogProvider.notifier)
+                      .showAlert('복용상태를 취소 후 변경해주세요.');
                   return;
                 }
 
@@ -337,9 +306,10 @@ class _MainCardListState extends ConsumerState<MainCardList> {
                 border: Border.all(width: 1.0, color: Colors.grey[300]!)),
             child: IconButton(
               onPressed: () {
-
-                if(pill.takeStatus){
-                  ref.watch(dialogProvider.notifier).showAlert('복용상태를 취소 후 변경해주세요.');
+                if (pill.takeStatus) {
+                  ref
+                      .watch(dialogProvider.notifier)
+                      .showAlert('복용상태를 취소 후 변경해주세요.');
                   return;
                 }
 
@@ -462,33 +432,31 @@ class _MemoBoxState extends ConsumerState<MemoBox> {
                     ),
                   ),
                   onPressed: () async {
-                    final dio = ref.watch(dioProvider);
+                    final umService = ref.watch(userMainServiceProvider);
 
-                    try {
-                      final resp = await dio.post('${apiIp}/plan/memo',
-                          options: Options(headers: {'accessToken': 'true'}),
-                          data: {
-                            'date': DateFormat('yyyy-MM-dd')
-                                .format(widget.selectedDay),
-                            'timezone_id': widget.timezoneId,
-                            'memo': _memoController.text,
-                          });
+                    final success = await umService.upsertMemo(data: {
+                      'date':
+                          DateFormat('yyyy-MM-dd').format(widget.selectedDay),
+                      'timezone_id': widget.timezoneId,
+                      'memo': _memoController.text,
+                    });
 
-                      print(
-                          DateFormat('yyyy-MM-dd').format(widget.selectedDay));
-                      print(widget.timezoneId);
-                      print(_memoController.text);
-                      print(resp);
+                    print(DateFormat('yyyy-MM-dd').format(widget.selectedDay));
+                    print(widget.timezoneId);
+                    print(_memoController.text);
 
+
+                    print('메모성공여부 >>>> $success');
+
+
+                    if (success){
                       ref.refresh(widget.onReloadRequest!);
-                    } on DioException catch (e) {
-                      ref.watch(dialogProvider.notifier).errorAlert(e);
-                    } catch (e) {
-                      ref.watch(dialogProvider.notifier).errorExceptionAlert(e);
-                    } /*
-                    setState(() {
-                      showMemoPad = !showMemoPad;
-                    });*/
+                      setState(() {
+                        showMemoPad = !showMemoPad;
+                      });
+                    }
+
+
                   },
                   child: Text(
                     '저장',
